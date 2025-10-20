@@ -1,27 +1,54 @@
-#ifndef MEDIA_CONTROLLER_H
-#define MEDIA_CONTROLLER_H
+#pragma once
+#include "model/MediaManager.h"
+#include "model/MediaPlayer.h"
+#include "utils/DeviceConnector.h"
+#include "utils/TagLibWrapper.h"
 
-#include "../model/MediaFile.h"
-#include <iostream>
-
-// Stub for MediaController
-// Simulates playing media files for PlaylistController
+/**
+ * @class MediaController
+ * @brief Handles user input related to media playback and library management.
+ */
 class MediaController {
 public:
-    MediaController() {}
+    /**
+     * @brief Constructor using Dependency Injection.
+     * @param manager Non-owning pointer to MediaManager.
+     * @param player Non-owning pointer to MediaPlayer.
+     * @param tagUtil Non-owning pointer to TagLibWrapper.
+     * @param device Non-owning pointer to DeviceConnector.
+     */
+    MediaController(MediaManager* manager, MediaPlayer* player, 
+                    TagLibWrapper* tagUtil, DeviceConnector* device);
 
-    // Mock play function to simulate playback
-    void play(const MediaFile& file) {
-        std::cout << "[Mock] Playing: " << file.getFileName() << std::endl;
-    }
+    // --- Methods called from View (User Input) ---
+    void playTrack(MediaFile* file);
+    void pauseOrResume();
+    void stop();
+    void setVolume(int volume);
+    bool editMetadata(MediaFile* file, const std::string& key, const std::string& value);
+    void loadMediaFromPath(const std::string& path);
 
-    void pause() {
-        std::cout << "[Mock] Paused current track." << std::endl;
-    }
+    // --- Methods called from S32K144 (Device Input) ---
+    void onDevicePlayPause();
+    void onDeviceNext();
+    void onDevicePrevious();
+    void onDeviceVolumeChange(int adcValue); // Raw value from ADC
 
-    void stop() {
-        std::cout << "[Mock] Stopped playback." << std::endl;
-    }
+private:
+    /**
+     * @brief Sends current song info to the S32K144 board.
+     * @param file The file that just started playing.
+     */
+    void sendSongInfoToDevice(MediaFile* file);
+
+    /**
+     * @brief Converts the raw ADC value to a 0-100 volume scale.
+     */
+    int convertAdcToVolume(int adcValue);
+
+    // Non-owning pointers to models and utilities
+    MediaManager* mediaManager;
+    MediaPlayer* mediaPlayer;
+    TagLibWrapper* tagUtil;
+    DeviceConnector* deviceConnector;
 };
-
-#endif

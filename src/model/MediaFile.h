@@ -1,51 +1,35 @@
-#ifndef MEDIAFILE_H
-#define MEDIAFILE_H
-
+#pragma once
 #include <string>
-#include <iostream>
-#include <taglib/fileref.h>
-#include <taglib/tag.h>
+#include <memory> // For std::unique_ptr
+#include "Metadata.h"
+#include "AudioMetadata.h" // Need definitions for dynamic_cast
+#include "VideoMetadata.h" // in .cpp
 
-// Represents a single media file (audio/video)
+// Enum to identify media type
+enum class MediaType { UNKNOWN, AUDIO, VIDEO };
+
+/**
+ * @class MediaFile
+ * @brief Represents a single media file on disk.
+ * It owns its Metadata object via std::unique_ptr for automatic memory management.
+ */
 class MediaFile {
-private:
-    std::string name;   // display name of the file
-    std::string path;   // file path on disk (or mock path)
-    TagLib::FileRef metadata;
-
 public:
-    MediaFile() {}
+    /**
+     * @brief Constructor.
+     * @param path The full path to the file.
+     * @param metadata A unique_ptr to the polymorphic Metadata object.
+     */
+    MediaFile(const std::string& path, std::unique_ptr<Metadata> metadata);
 
-    // Constructor 
-    explicit MediaFile(const std::string& name) : name(name), path("") {}
-    MediaFile(const std::string& name, const std::string& path) : name(name), path(path) {}
-    MediaFile(const std::string& path);
+    const std::string& getFilePath() const;
+    const std::string& getFileName() const; // For display
+    MediaType getType() const;
+    Metadata* getMetadata() const; // Returns a raw pointer for viewing/editing
 
-    // Getters
-    const std::string& getFileName() const { return name; }
-    const std::string& getFilePath() const { return path; }
-    
-    
-
-    // Setters
-    void setName(const std::string& n) { name = n; }
-    void setPath(const std::string& p) { path = p; }
-
-    // For debugging
-    void print() const {
-        std::cout << "MediaFile: " << name << " (" << path << ")" << std::endl;
-    }
-
-    std::string getTitle() const;
-    std::string getArtist() const;
-    std::string getAlbum() const;
-    std::string getGenre() const;
-    int getDuration() const;
-    unsigned int getYear() const;
-    unsigned int getTrack() const;
-    bool setMetadata(const std::string& key, const std::string& value);
-    bool isValid() const;
-    std::string getCustomMetadataField(const std::string& key) const;
+private:
+    std::string filePath;
+    std::string fileName; // Extracted from filePath
+    MediaType mediaType;
+    std::unique_ptr<Metadata> metadata; // Owning smart pointer
 };
-
-#endif

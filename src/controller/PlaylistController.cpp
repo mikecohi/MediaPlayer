@@ -1,84 +1,58 @@
-#include "PlaylistController.h"
-#include <iostream>
+#include "controller/PlaylistController.h"
+#include <iostream> 
 
-PlaylistController::PlaylistController(PlaylistManager* pm, MediaController* mc)
-    : playlistManager(pm), mediaController(mc), view(NULL) {}
-
-void PlaylistController::setView(PlaylistMenuView* v) {
-    view = v;
-}
-
-void PlaylistController::addTrackToPlaylist(const std::string& playlistName, const MediaFile& file) {
-    Playlist* p = playlistManager->findPlaylist(playlistName);
-    if (p) {
-        p->addTrack(file);
-        std::cout << "Added track to playlist: " << playlistName << std::endl;
+// Constructor
+PlaylistController::PlaylistController(PlaylistManager* manager)
+    : playlistManager(manager) 
+{
+    if (this->playlistManager == nullptr) {
+        // This is a critical error, we should log it
+        std::cerr << "CRITICAL: PlaylistController initialized with a null PlaylistManager!" << std::endl;
     }
 }
 
-void PlaylistController::removeTrackFromPlaylist(const std::string& playlistName, const std::string& fileName) {
-    Playlist* p = playlistManager->findPlaylist(playlistName);
-    if (p) {
-        p->removeTrack(fileName);
-        std::cout << "Removed track from playlist: " << fileName << std::endl;
+// createPlaylist 
+bool PlaylistController::createPlaylist(const std::string& name) {
+    if (name.empty()) {
+        std::cerr << "Controller Error: Playlist name cannot be empty." << std::endl;
+        return false;
     }
+    Playlist* p = playlistManager->createPlaylist(name);
+    return (p != nullptr);
 }
 
-void PlaylistController::playPlaylist(const std::string& playlistName) {
-    Playlist* p = playlistManager->findPlaylist(playlistName);
-    if (!p) {
-        std::cout << "Playlist not found: " << playlistName << std::endl;
-        return;
+// deletePlaylist
+bool PlaylistController::deletePlaylist(const std::string& name) {
+    if (name.empty()) {
+        return false;
     }
-
-    const std::vector<MediaFile>& tracks = p->getTracks();
-    for (size_t i = 0; i < tracks.size(); ++i) {
-        mediaController->play(tracks[i]);  // use MediaController to play
-    }
+    return playlistManager->deletePlaylist(name);
 }
 
-void PlaylistController::showMenu() {
-    if (!view) {
-        view = new PlaylistMenuView(playlistManager); // fallback if not injected
-        view->setController(this);
+// addTrackToPlaylist 
+bool PlaylistController::addTrackToPlaylist(MediaFile* file, Playlist* playlist) {
+    if (file == nullptr || playlist == nullptr) {
+        std::cerr << "Controller Error: Cannot add null track or to null playlist." << std::endl;
+        return false;
     }
-
-    view->displayMenu();
+    
+    // We delegate the logic to the Model (Playlist object)
+    playlist->addTrack(file); 
+    
+    // Here we could add logic to save the playlist to file
+    // e.g., playlistManager->saveToFile("default.json");
+    
+    return true;
 }
 
-void PlaylistController::handleUserChoice(int choice) {
-    switch (choice) {
-        case 1: {
-            std::string playlistName, fileName;
-            std::cout << "Enter playlist name: ";
-            std::getline(std::cin, playlistName);
-            std::cout << "Enter file name to add: ";
-            std::getline(std::cin, fileName);
-            MediaFile mf(fileName); // dummy MediaFile
-            addTrackToPlaylist(playlistName, mf);
-            break;
-        }
-        case 2: {
-            std::string playlistName, fileName;
-            std::cout << "Enter playlist name: ";
-            std::getline(std::cin, playlistName);
-            std::cout << "Enter file name to remove: ";
-            std::getline(std::cin, fileName);
-            removeTrackFromPlaylist(playlistName, fileName);
-            break;
-        }
-        case 3: {
-            std::string playlistName;
-            std::cout << "Enter playlist name to play: ";
-            std::getline(std::cin, playlistName);
-            playPlaylist(playlistName);
-            break;
-        }
-        default:
-            std::cout << "Invalid choice." << std::endl;
-            break;
+// removeTrackFromPlaylist - PHẢI KHỚP VỚI FILE .h
+bool PlaylistController::removeTrackFromPlaylist(MediaFile* file, Playlist* playlist) {
+    if (file == nullptr || playlist == nullptr) {
+        std::cerr << "Controller Error: Cannot remove null track or from null playlist." << std::endl;
+        return false;
     }
-
-    // After handling, re-display the menu
-    view->displayMenu();
+    
+    // We delegate the logic to the Model (Playlist object)
+    return playlist->removeTrack(file);
 }
+

@@ -1,36 +1,41 @@
-#include "Playlist.h"
+#include "model/Playlist.h"
+#include <algorithm> // For std::find, std::remove
 
-Playlist::Playlist(const std::string& name) : name(name) {}
-
-void Playlist::addTrack(const MediaFile& file) {
-    tracks.push_back(file);
+Playlist::Playlist(const std::string& name) : name(name) {
+    // Constructor
 }
 
-void Playlist::removeTrack(const std::string& fileName) {
-    for (std::vector<MediaFile>::iterator it = tracks.begin(); it != tracks.end(); ++it) {
-        if (it->getFileName() == fileName) {
-            tracks.erase(it);
-            break;
-        }
-    }
+std::string Playlist::getName() const {
+    return this->name;
 }
 
-const std::vector<MediaFile>& Playlist::getTracks() const {
-    return tracks;
+void Playlist::setName(const std::string& newName) {
+    this->name = newName;
 }
 
-const std::string& Playlist::getName() const {
-    return name;
-}
-
-void Playlist::printToTerminal() const {
-    std::cout << "Playlist: " << name << std::endl;
-    if (tracks.empty()) {
-        std::cout << "  (No tracks)" << std::endl;
+void Playlist::addTrack(MediaFile* file) {
+    if (file == nullptr) {
         return;
     }
-
-    for (size_t i = 0; i < tracks.size(); ++i) {
-        std::cout << "  " << (i + 1) << ". " << tracks[i].getFileName() << std::endl;
+    // Optional: Check if track already exists
+    auto it = std::find(tracks.begin(), tracks.end(), file);
+    if (it == tracks.end()) {
+        tracks.push_back(file);
     }
+}
+
+bool Playlist::removeTrack(MediaFile* file) {
+    if (file == nullptr) {
+        return false;
+    }
+    auto it = std::find(tracks.begin(), tracks.end(), file);
+    if (it != tracks.end()) {
+        tracks.erase(it);
+        return true;
+    }
+    return false;
+}
+
+const std::vector<MediaFile*>& Playlist::getTracks() const {
+    return this->tracks;
 }

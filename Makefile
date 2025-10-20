@@ -1,51 +1,53 @@
 # =====================================================
 # MediaPlayer - Makefile
-# Build main app + unit tests
 # =====================================================
 
 CXX := g++
-CXXFLAGS := -std=c++17 -Wall -I./src
-LDFLAGS := -lncurses -lSDL2 -ltag
 
+# Compiler and Linker flags managed by pkg-config
+# Requires: libncurses-dev, libsdl2-dev, libsdl2-mixer-dev, libtag1-dev
+CXXFLAGS := -std=c++17 -Wall -g -I./src $(shell pkg-config --cflags ncurses sdl2 taglib)
+LDFLAGS := $(shell pkg-config --libs ncurses sdl2 taglib SDL2_mixer)
+
+# Project directories
 SRC_DIR := src
 OBJ_DIR := obj
 BIN_DIR := bin
 TEST_DIR := $(SRC_DIR)/tests
 
 # ---------------------------------------
-# Collect all cpp files for the main app
+# Collect sources and objects for the main app
+# (Excludes test files)
 # ---------------------------------------
-SRCS := $(shell find $(SRC_DIR) -type f -name "*.cpp" ! -path "$(SRC_DIR)/tests/*")
+SRCS := $(shell find $(SRC_DIR) -type f -name "*.cpp" ! -path "$(TEST_DIR)/*")
 OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRCS))
 
-# ---------------------------------------
-# Collect all test files
-# ---------------------------------------
-TEST_SRCS := $(wildcard $(TEST_DIR)/*.cpp)
-TEST_OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(TEST_SRCS))
-TEST_BIN := $(BIN_DIR)/run_tests
+# Auto-generate dependency files (.d)
+DEPS := $(OBJS:.o=.d)
 
-# ---------------------------------------
-# Main executable
-# ---------------------------------------
+# Main application executable
 TARGET := $(BIN_DIR)/mediaplayer
 
-# ---------------------------------------
-# Default target
-# ---------------------------------------
+# =======================================
+# TARGETS
+# =======================================
+
+.PHONY: all test clean
+
+# Default target: build the main application
 all: $(TARGET)
 
 $(TARGET): $(OBJS) | $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
-	@echo "✅ Build complete: $@"
+	@echo "✅ Build complete: $(TARGET)"
 
 # ---------------------------------------
-# Unit test target (build + run all tests)
+# Unit test target
 # ---------------------------------------
-
 TEST_SRCS := $(wildcard $(TEST_DIR)/*.cpp)
 TEST_BINS := $(patsubst $(TEST_DIR)/%.cpp, $(BIN_DIR)/%.out, $(TEST_SRCS))
 
+# Build and run all available unit tests
 test: $(TEST_BINS)
 	@echo "🧪 Running all unit tests..."
 	@for t in $(TEST_BINS); do \
@@ -58,6 +60,8 @@ test: $(TEST_BINS)
 	done
 	@echo "✅ All available tests executed!"
 
+# Rule to build each test executable
+# Skips building if 'int main' is not found
 $(BIN_DIR)/%.out: $(TEST_DIR)/%.cpp $(filter-out $(OBJ_DIR)/main.o, $(OBJS)) | $(BIN_DIR)
 	@if grep -q "int main" $<; then \
 		echo "🔧 Building test: $<"; \
@@ -65,24 +69,29 @@ $(BIN_DIR)/%.out: $(TEST_DIR)/%.cpp $(filter-out $(OBJ_DIR)/main.o, $(OBJS)) | $
 	else \
 		echo "⚠️ Skipping $< (no main)"; \
 	fi
+
 # ---------------------------------------
-# Object file rule
+# Generic rule to build object files
+# -MMD -MP flags create dependency files
 # ---------------------------------------
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
 	@mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -MMD -MP -c $< -o $@
 
 # ---------------------------------------
 # Folder creation
 # ---------------------------------------
 $(BIN_DIR) $(OBJ_DIR):
-	mkdir -p $@
+	@mkdir -p $@
 
 # ---------------------------------------
 # Clean build files
 # ---------------------------------------
 clean:
-	rm -rf $(OBJ_DIR) $(BIN_DIR)
-	@echo "🧹 Clean complete."
+	@echo "🧹 Cleaning build files..."
+	@rm -rf $(OBJ_DIR) $(BIN_DIR)
 
-.PHONY: all test clean
+# ---------------------------------------
+# Include auto-generated dependencies
+# ---------------------------------------
+-include $(DEPS)

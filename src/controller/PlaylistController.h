@@ -1,33 +1,21 @@
-#ifndef PLAYLIST_CONTROLLER_H
-#define PLAYLIST_CONTROLLER_H
+#pragma once
+#include "model/PlaylistManager.h"
+#include "model/MediaFile.h"
 
-#include "../model/PlaylistManager.h"
-#include "MediaController.h"
-#include "../view/PlaylistMenuView.h"
-
-// Controller: handles user actions related to playlists
+/**
+ * @class PlaylistController
+ * @brief Handles user input related to playlist management (CRUD).
+ */
 class PlaylistController {
-private:
-    PlaylistManager* playlistManager;
-    MediaController* mediaController;
-    PlaylistMenuView* view; // View pointer for MVC coordination
-
 public:
-    PlaylistController(PlaylistManager* pm, MediaController* mc);
+    PlaylistController(PlaylistManager* manager);
 
-    // Connect a view (dependency injection)
-    void setView(PlaylistMenuView* v);
+    // --- Methods called from View (User Input) ---
+    bool createPlaylist(const std::string& name);
+    bool deletePlaylist(const std::string& name);
+    bool addTrackToPlaylist(MediaFile* file, Playlist* playlist);
+    bool removeTrackFromPlaylist(MediaFile* file, Playlist* playlist);
 
-    // Core actions
-    void addTrackToPlaylist(const std::string& playlistName, const MediaFile& file);
-    void removeTrackFromPlaylist(const std::string& playlistName, const std::string& fileName);
-    void playPlaylist(const std::string& playlistName);
-
-    // Display menu (controller entry)
-    void showMenu();
-
-    // Called by view when user selects menu options
-    void handleUserChoice(int choice);
+private:
+    PlaylistManager* playlistManager; // Non-owning pointer
 };
-
-#endif
