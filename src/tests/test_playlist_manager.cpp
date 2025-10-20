@@ -1,6 +1,3 @@
-// src/tests/test_playlist.cpp
-// (Trước đây tên là test_playlist_manager.cpp)
-
 #include "model/PlaylistManager.h"
 #include <iostream>
 #include <cassert> // For basic testing
