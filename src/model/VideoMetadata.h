@@ -1,10 +1,6 @@
 #pragma once
 #include "Metadata.h"
 
-/**
- * @class VideoMetadata
- * @brief Inherits from Metadata and adds video-specific fields.
- */
 class VideoMetadata : public Metadata {
 public:
     std::string resolution; // e.g., "1920x1080"

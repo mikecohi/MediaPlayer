@@ -1,5 +1,5 @@
 #pragma once
-#include "utils/NcursesUI.h"
+#include "utils/NcursesUI.h" // Needs InputEvent
 #include <string>
 #include <vector>
 #include <memory>
@@ -8,20 +8,15 @@
 class SidebarView;
 class BottomBarView;
 class IMainAreaView;
-class AppController; 
+class AppController;
 
-// ===================================
-// SỬA LỖI 1: Bổ sung các định nghĩa ENUM
-// ===================================
-
-// Định nghĩa các chế độ (state) của ứng dụng
+// Enums
 enum class AppMode {
     FILE_BROWSER,
     PLAYLISTS,
     USB_BROWSER
 };
 
-// Định nghĩa khu vực đang được "focus" (để điều hướng)
 enum class FocusArea {
     SIDEBAR,
     MAIN_LIST,
@@ -29,37 +24,41 @@ enum class FocusArea {
     BOTTOM_BAR
 };
 
-/**
- * @class UIManager
- * @brief Manages the entire 3-pane persistent UI layout.
- */
 class UIManager {
 public:
-    // Sửa Constructor: Nhận AppController
-    explicit UIManager(NcursesUI* ui, AppController* controller); 
+    explicit UIManager(NcursesUI* ui, AppController* controller);
     ~UIManager();
-    bool init(); 
+    bool init();
     void run();
 
 private:
     void handleInput(InputEvent event);
     void drawAll();
-    void switchMainView(AppMode newMode); // <-- Giờ đã hợp lệ
+    void switchMainView(AppMode newMode);
+    WINDOW* getWindowAt(int globalY, int globalX, int& localY, int& localX);
 
+    // Order matches the constructor initializer list for -Wreorder
     NcursesUI* ui;
-    AppController* appController; 
+    AppController* appController;
     bool isRunning;
-    
+
+    int screenH, screenW;
+    int mainHeight, mainWidth;
+
     int sidebarWidth;
     int bottomBarHeight;
 
-    WINDOW *sidebarWin, *mainWin, *bottomWin;
+    WINDOW *sidebarWin;
+    WINDOW *mainWin;
+    WINDOW *bottomWin; 
 
-    // Các dòng này giờ đã hợp lệ
     AppMode currentMode;
     FocusArea currentFocus;
 
     std::unique_ptr<SidebarView> sidebarView;
     std::unique_ptr<BottomBarView> bottomBarView;
     std::unique_ptr<IMainAreaView> mainAreaView;
+
+    bool needsRedrawSidebar;
+    bool needsRedrawMain;
 };

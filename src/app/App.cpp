@@ -1,53 +1,52 @@
 #include "app/App.h"
 #include "utils/NcursesUI.h"
-#include "view/UIManager.h" 
-#include "controller/AppController.h" 
+#include "view/UIManager.h"
+#include "controller/AppController.h"
 #include <iostream>
+#include <fstream> // For file logging if needed
 
-// ===================================
-// SỬA LỖI 2: Bổ sung các include đầy đủ
-// ===================================
-#include "model/MediaManager.h"
+#include "model/MediaManager.h" // Needed for the log below
 #include "model/PlaylistManager.h"
-// (Chúng ta không cần MediaPlayer.h ở đây)
 
-
-App::App() {
-    // Constructor
-}
-
-App::~App() {
-    // Destructor
-}
+App::App() {}
+App::~App() {}
 
 bool App::init() {
-    // 1. Initialize Ncurses
     ui = std::make_unique<NcursesUI>();
     if (!ui->initScreen()) {
         std::cerr << "Failed to initialize NcursesUI!" << std::endl;
         return false;
     }
 
-    // 2. Initialize "bộ não" (AppController)
     appController = std::make_unique<AppController>();
     if (!appController->init()) {
         std::cerr << "Failed to initialize AppController!" << std::endl;
         return false;
     }
 
-    // 3. Initialize "bộ mặt" (UIManager)
-    uiManager = std::make_unique<UIManager>(ui.get(), appController.get()); 
+    uiManager = std::make_unique<UIManager>(ui.get(), appController.get());
     if (!uiManager->init()) {
         std::cerr << "Failed to initialize UIManager!" << std::endl;
         return false;
     }
-    
-    // --- GIAI ĐOẠN 3: NẠP DỮ LIỆU THẬT KHI KHỞI ĐỘNG ---
-    std::cout << "App: Loading initial media..." << std::endl;
-    
-    // Dòng này giờ đã hợp lệ vì App.cpp đã include MediaManager.h
-    appController->getMediaManager()->loadFromDirectory("/home/quynhmai/mock/MediaPlayer/test_media");
-    
+
+    std::cout << "App: Loading initial media from ./test_media ..." << std::endl;
+    std::string mediaPath = "/home/quynhmai/mock/MediaPlayer/test_media";
+    appController->getMediaManager()->loadFromDirectory(mediaPath);
+
+    // --- LOGGING ---
+    if (appController && appController->getMediaManager()) {
+        int count = appController->getMediaManager()->getTotalFileCount();
+        std::cout << "DEBUG App::init: MediaManager reports "
+                  << count << " files AFTER loading from " << mediaPath << "." << std::endl;
+        // Optional: Log to file
+        // std::ofstream logfile("app_init.log", std::ios::app);
+        // logfile << "DEBUG App::init: MediaManager reports " << count << " files AFTER loading." << std::endl;
+    } else {
+         std::cout << "DEBUG App::init: AppController or MediaManager is NULL after loading!" << std::endl;
+    }
+    // --- END LOGGING ---
+
     std::cout << "App: Media loading complete." << std::endl;
 
     return true;

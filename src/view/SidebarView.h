@@ -3,8 +3,8 @@
 #include <vector>
 #include <string>
 
-// Forward declare (tránh include vòng)
-enum class AppMode;
+// Forward declare
+enum class AppMode; // Use enum from UIManager.h if possible
 enum class FocusArea;
 
 class SidebarView {
@@ -12,9 +12,16 @@ public:
     SidebarView(NcursesUI* ui, WINDOW* win);
     void draw(bool hasFocus);
     AppMode handleInput(InputEvent event);
+    AppMode handleMouse(int localY, int localX);
     bool shouldExit() const;
 
-private:
+private: // <-- PHẦN PRIVATE
+    /**
+     * @brief Determines the AppMode based on the currently selected option.
+     * @return The AppMode corresponding to selectedOption.
+     */
+    AppMode getCurrentModeSelection() const; // <-- THÊM KHAI BÁO NÀY
+
     NcursesUI* ui;
     WINDOW* win;
     int selectedOption;

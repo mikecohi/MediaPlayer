@@ -1,102 +1,122 @@
 #include "view/MainPlaylistView.h"
-#include "model/Playlist.h"   // Cần để lấy tên và danh sách bài hát
-#include "model/MediaFile.h"  // Cần để lấy tên file
-#include <algorithm> // For std::min/max
-#include <string>    // For std::to_string
-#include <tuple>     // For std::ignore
+#include "model/Playlist.h"
+#include "model/MediaFile.h"
+#include <algorithm>
+#include <string>
+#include <tuple>
 
 MainPlaylistView::MainPlaylistView(NcursesUI* ui, WINDOW* win, PlaylistManager* manager)
-    : ui(ui), win(win), playlistManager(manager), 
+    : ui(ui), win(win), playlistManager(manager),
       playlistSelected(0), trackSelected(0)
-{
-    // Constructor. Không cần làm gì thêm,
-    // vì chúng ta sẽ lấy dữ liệu mới mỗi khi draw().
-}
+{}
 
 void MainPlaylistView::draw(FocusArea focus) {
-    wclear(win); // Xóa nội dung cũ
-    box(win, 0, 0); // Vẽ lại viền
+    werase(win);
+    box(win, 0, 0);
 
     int width;
     getmaxyx(win, std::ignore, width);
     int listWidth = width / 2;
 
-    // --- 1. LẤY DỮ LIỆU THẬT TỪ MODEL ---
     std::vector<Playlist*> playlists = playlistManager->getAllPlaylists();
 
-    // --- 2. VẼ PANEL DANH SÁCH PLAYLIST (Bên trái) ---
-mvwprintw(win, 2, 3, "Playlists (%d)", static_cast<int>(playlists.size()));
-
+    // Draw playlist list panel
+    mvwprintw(win, 2, 3, "Playlists (%d)", static_cast<int>(playlists.size()));
     for (size_t i = 0; i < playlists.size(); ++i) {
         if (focus == FocusArea::MAIN_LIST && (int)i == playlistSelected) {
              wattron(win, A_REVERSE | A_BOLD);
         }
-        
-        // Tạo chuỗi tên (ví dụ: "Chill Vibes (12)")
         std::string name = playlists[i]->getName();
         std::string count = "(" + std::to_string(playlists[i]->getTracks().size()) + ")";
         std::string entry = name + " " + count;
-        
         mvwprintw(win, 4 + i, 3, "%.*s", listWidth - 5, entry.c_str());
         wattroff(win, A_REVERSE | A_BOLD);
     }
-    
-    // --- 3. VẼ PANEL CHI TIẾT BÀI HÁT (Bên phải) ---
-    mvwprintw(win, 2, listWidth + 2, "Tracks in Playlist");
 
-    if (playlistSelected >= 0 && (size_t)playlistSelected < playlists.size()) {
-        // Lấy playlist đang được chọn
-        Playlist* selectedPlaylist = playlists[playlistSelected];
-        std::vector<MediaFile*> tracks = selectedPlaylist->getTracks();
+    // Draw track list panel
+    mvwprintw(win, 2, listWidth + 2, "Tracks in Playlist");
+    std::vector<MediaFile*> tracks;
+    Playlist* currentSelectedPlaylist = nullptr; // Keep track of the selected playlist
+    if (playlistSelected >= 0 && static_cast<size_t>(playlistSelected) < playlists.size()) {
+        currentSelectedPlaylist = playlists[playlistSelected];
+        tracks = currentSelectedPlaylist->getTracks();
 
         if (tracks.empty()) {
             mvwprintw(win, 4, listWidth + 2, "(No tracks)");
         } else {
-            // Vẽ danh sách bài hát
             for (size_t i = 0; i < tracks.size(); ++i) {
                 if (focus == FocusArea::MAIN_DETAIL && (int)i == trackSelected) {
                     wattron(win, A_REVERSE | A_BOLD);
                 }
-                mvwprintw(win, 4 + i, listWidth + 2, "%s", tracks[i]->getFileName().c_str());
+                mvwprintw(win, 4 + i, listWidth + 2, "%.*s", width - listWidth - 4, tracks[i]->getFileName().c_str());
                 wattroff(win, A_REVERSE | A_BOLD);
             }
         }
     } else if (!playlists.empty()) {
-        mvwprintw(win, 4, listWidth + 2, "(Invalid selection)");
+        mvwprintw(win, 4, listWidth + 2, "(Invalid playlist selection)");
     } else {
         mvwprintw(win, 4, listWidth + 2, "(No playlists created)");
     }
+     // TODO: Add buttons [Create] [Delete] [Play] and [Remove Song] visually
 
-    wrefresh(win); // Đẩy tất cả thay đổi ra màn hình
+    wnoutrefresh(win);
 }
 
 void MainPlaylistView::handleInput(InputEvent event, FocusArea focus) {
-    // Lấy dữ liệu mới nhất để kiểm tra giới hạn (bounds)
     std::vector<Playlist*> playlists = playlistManager->getAllPlaylists();
-    
     if (focus == FocusArea::MAIN_LIST && !playlists.empty()) {
-        // Xử lý input cho danh sách playlist
-        if (event.key == KEY_DOWN) {
-            playlistSelected = std::min(playlistSelected + 1, (int)playlists.size() - 1);
-            trackSelected = 0; // Reset lựa chọn bài hát khi đổi playlist
-        }
-        if (event.key == KEY_UP) {
-            playlistSelected = std::max(0, playlistSelected - 1);
-            trackSelected = 0; // Reset
-        }
+        int oldSelected = playlistSelected;
+        if (event.key == KEY_DOWN) playlistSelected = std::min(playlistSelected + 1, (int)playlists.size() - 1);
+        if (event.key == KEY_UP) playlistSelected = std::max(0, playlistSelected - 1);
+        if (playlistSelected != oldSelected) trackSelected = 0; // Reset track selection on playlist change
 
-    } else if (focus == FocusArea::MAIN_DETAIL && !playlists.empty() && 
-               (size_t)playlistSelected < playlists.size()) {
-        
-        // Xử lý input cho danh sách bài hát
+    } else if (focus == FocusArea::MAIN_DETAIL && !playlists.empty() &&
+               static_cast<size_t>(playlistSelected) < playlists.size()) {
         int trackCount = playlists[playlistSelected]->getTracks().size();
         if (trackCount > 0) {
-            if (event.key == KEY_DOWN) {
-                trackSelected = std::min(trackSelected + 1, trackCount - 1);
+            if (event.key == KEY_DOWN) trackSelected = std::min(trackSelected + 1, trackCount - 1);
+            if (event.key == KEY_UP) trackSelected = std::max(0, trackSelected - 1);
+        }
+    }
+     // TODO: Handle Enter key on playlist buttons ([Create] etc.)
+     // TODO: Handle Enter key on track buttons ([Remove Song])
+}
+
+void MainPlaylistView::handleMouse(int localY, int localX) {
+    int width;
+    getmaxyx(win, std::ignore, width);
+    int listWidth = width / 2;
+    int listStartY = 4; // Both lists start at Y=4
+
+    std::vector<Playlist*> playlists = playlistManager->getAllPlaylists();
+    if (playlists.empty()) return;
+
+    int clickedIndex = localY - listStartY;
+
+    if (localX < listWidth) { // Clicked on playlist list (left panel)
+        if (clickedIndex >= 0 && static_cast<size_t>(clickedIndex) < playlists.size()) {
+            if (playlistSelected != clickedIndex) { // Only reset if selection changed
+                 playlistSelected = clickedIndex;
+                 trackSelected = 0; // Reset track selection
             }
-            if (event.key == KEY_UP) {
-                trackSelected = std::max(0, trackSelected - 1);
+        }
+    } else { // Clicked on track list (right panel)
+        if (playlistSelected >= 0 && static_cast<size_t>(playlistSelected) < playlists.size()) {
+            int trackCount = playlists[playlistSelected]->getTracks().size();
+            if (clickedIndex >= 0 && clickedIndex < trackCount) {
+                trackSelected = clickedIndex;
             }
         }
     }
+     // TODO: Handle clicks on buttons ([Create], [Delete], [Remove Song])
+}
+
+
+MediaFile* MainPlaylistView::getSelectedTrack() const {
+    std::vector<Playlist*> playlists = playlistManager->getAllPlaylists();
+    if (playlistSelected < 0 || static_cast<size_t>(playlistSelected) >= playlists.size()) return nullptr;
+    Playlist* selectedPlaylist = playlists[playlistSelected];
+    const std::vector<MediaFile*>& tracks = selectedPlaylist->getTracks();
+    if (trackSelected < 0 || static_cast<size_t>(trackSelected) >= tracks.size()) return nullptr;
+    return tracks[trackSelected];
 }

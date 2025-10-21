@@ -1,8 +1,7 @@
 #include "NcursesUI.h"
+#include <iostream> // For error logging
 
-NcursesUI::NcursesUI() : isInitialized(false), screenHeight(0), screenWidth(0) {
-    // Constructor
-}
+NcursesUI::NcursesUI() : isInitialized(false), screenHeight(0), screenWidth(0) {}
 
 NcursesUI::~NcursesUI() {
     if (isInitialized) {
@@ -11,86 +10,78 @@ NcursesUI::~NcursesUI() {
 }
 
 bool NcursesUI::initScreen() {
-    if (isInitialized) {
-        return true; // Already initialized
-    }
+    if (isInitialized) return true;
+    if (initscr() == NULL) return false;
 
-    // Initialize the main screen
-    if (initscr() == NULL) {
-        return false; // Ncurses failed to initialize
-    }
+    cbreak();
+    noecho();
+    keypad(stdscr, TRUE);
+    curs_set(0);
 
-    // Set up core modes
-    cbreak();             // Disable line buffering
-    noecho();             // Don't echo keypresses to the screen
-    keypad(stdscr, TRUE); // Enable function keys (F1, arrows, etc.)
-    curs_set(0);          // Hide the cursor
+    // ===================================
+    // THAY ĐỔI Ở ĐÂY: Thiết lập timeout
+    // ===================================
+    timeout(250); // Wait 100ms for input, then return ERR if none
 
-    // Enable colors
     if (has_colors()) {
         start_color();
-        // Initialize default color pair (white on black)
         init_pair(1, COLOR_WHITE, COLOR_BLACK);
         wbkgd(stdscr, COLOR_PAIR(1));
     }
-
-    // Enable mouse support
     mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, NULL);
-
-    // Get screen dimensions
     getScreenDimensions(screenHeight, screenWidth);
-    
     isInitialized = true;
     return true;
 }
 
 void NcursesUI::closeScreen() {
     if (isInitialized) {
-        endwin(); // Restore terminal settings
+        endwin();
         isInitialized = false;
     }
 }
 
 WINDOW* NcursesUI::drawWindow(int y, int x, int height, int width, const std::string& title) {
-    // Create the window
     WINDOW* win = newwin(height, width, y, x);
-    
-    // Draw a box border
     box(win, 0, 0);
-
-    // Print the title on the top border if provided
-    if (!title.empty()) {
-        mvwprintw(win, 0, (width - title.length()) / 2, "%s", title.c_str());
+    if (!title.empty() && width > 4) { // Ensure width is enough for title
+        mvwprintw(win, 0, (width - title.length()) / 2, "%.*s", width - 2, title.c_str()); // Limit title width
     }
-
-    // Refresh the window to show the border and title
     wrefresh(win);
-    
     return win;
 }
 
 void NcursesUI::printText(WINDOW* win, int y, int x, const std::string& text) {
-    if (win == NULL) {
-        win = stdscr; // Default to stdscr if window is null
+    if (win == NULL) win = stdscr;
+    // Get window dimensions to prevent writing outside bounds
+    int max_y = getmaxy(win);
+    int max_x = getmaxx(win);
+    // Basic bounds check (adjust based on border presence if needed)
+    if (y > 0 && y < max_y -1 && x > 0 && x < max_x - 1) {
+         mvwprintw(win, y, x, "%.*s", max_x - x -1 , text.c_str()); // Limit text width
     }
-    mvwprintw(win, y, x, "%s", text.c_str());
-    // Note: You might need to call wrefresh(win) manually after printing
 }
 
 InputEvent NcursesUI::getInput() {
     InputEvent event;
-    int ch = wgetch(stdscr); // This is a blocking call
+    // wgetch will now return ERR after 100ms if no input
+    int ch = wgetch(stdscr);
 
-    if (ch == KEY_MOUSE) {
-        // This is a mouse event
+    if (ch == ERR) {
+        // No input received within the timeout period
+        event.type = InputEvent::UNKNOWN; // Or a new type like TIMEOUT
+    }
+    else if (ch == KEY_MOUSE) {
         MEVENT mouseEvent;
         if (getmouse(&mouseEvent) == OK) {
             event.type = InputEvent::MOUSE;
             event.mouseX = mouseEvent.x;
             event.mouseY = mouseEvent.y;
+            // You might want to capture mouseEvent.bstate here too
+        } else {
+             event.type = InputEvent::UNKNOWN; // Failed to get mouse event details
         }
-    } else if (ch != ERR) {
-        // This is a keyboard event
+    } else {
         event.type = InputEvent::KEYBOARD;
         event.key = ch;
     }
