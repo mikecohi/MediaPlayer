@@ -4,16 +4,9 @@
 #include <memory>
 #include "MediaFile.h"
 
-// Forward-declare utility classes
-// We only need a pointer to TagLibWrapper.
-// FileUtils is a namespace, so we just include it in the .cpp
+
 class TagLibWrapper;
 
-/**
- * @class MediaManager
- * @brief Manages the entire media library.
- * This class owns all MediaFile objects.
- */
 class MediaManager {
 public:
     /**
@@ -27,10 +20,6 @@ public:
      * @param path The root directory path to scan.
      */
     void loadFromDirectory(const std::string& path);
-
-    /**
-     * @brief Clears all loaded media files from the library.
-     */
     void clearLibrary();
 
     // --- Interface for View (Pagination) ---

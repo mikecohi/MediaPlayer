@@ -1,71 +1,56 @@
 #pragma once
-#include <memory>
-#include "model/MediaManager.h"
-#include "model/PlaylistManager.h"
-#include "model/MediaPlayer.h"
-#include "controller/MediaController.h"
-#include "controller/PlaylistController.h"
-// Include all utility headers
-#include "utils/FileUtils.h"
-#include "utils/TagLibWrapper.h"
-#include "utils/SDLWrapper.h"
-#include "utils/DeviceConnector.h"
-#include "utils/USBUtils.h"
+#include <memory> // For std::unique_ptr
 
-// Forward-declare ViewManager to avoid circular include dependencies
-class ViewManager;
+// Forward-declare (khai báo trước) tất cả Model, Util, Controller
+// (Để tránh include vòng)
+class MediaManager;
+class PlaylistManager;
+class MediaPlayer;
+class MediaController;
+class PlaylistController;
+
+class TagLibWrapper;
+class SDLWrapper;
+class DeviceConnector;
+class USBUtils;
 
 /**
  * @class AppController
- * @brief The main "orchestrator" class.
- * It owns all Model, Controller, and Utility objects.
- * It manages the main application loop.
+ * @brief The main "brain" of the application.
+ * It owns all core Model, Utility, and Controller objects.
  */
 class AppController {
 public:
-    AppController(ViewManager* viewManager);
-    ~AppController(); // Required for cleanup of unique_ptrs
+    AppController();
+    ~AppController(); // Cần thiết để xử lý unique_ptr
 
-    void initialize(); // Initialize all subsystems
-    void run();        // Start the main application loop
-    void shutdown();   // Clean up and exit
+    /**
+     * @brief Initializes all subsystems (SDL, TagLib, etc.).
+     * @return true on success.
+     */
+    bool init();
 
-    // --- Getters for ViewManager ---
-    // Provides non-owning pointers to the View layer for rendering data.
-    MediaManager* getMediaManager();
-    PlaylistManager* getPlaylistManager();
-    MediaPlayer* getMediaPlayer();
-    MediaController* getMediaController();
-    PlaylistController* getPlaylistController();
+    // --- Getters ---
+    // Cung cấp các con trỏ (không sở hữu) cho UIManager và các View
+    MediaManager* getMediaManager() const;
+    PlaylistManager* getPlaylistManager() const;
+    MediaPlayer* getMediaPlayer() const;
+    MediaController* getMediaController() const;
+    PlaylistController* getPlaylistController() const;
 
 private:
-    /**
-     * @brief Processes input from keyboard/mouse via Ncurses.
-     */
-    void processUserInput();
-
-    /**
-     * @brief Processes input from the S32K144 board.
-     */
-    void processDeviceInput();
-
-    ViewManager* viewManager; // Non-owning pointer
-
-    // --- Ownership of all Utility objects ---
-    std::unique_ptr<FileUtils> fileUtils;
+    // --- Sở hữu (Ownership) tất cả các Utils ---
     std::unique_ptr<TagLibWrapper> tagLibWrapper;
     std::unique_ptr<SDLWrapper> sdlWrapper;
     std::unique_ptr<DeviceConnector> deviceConnector;
     std::unique_ptr<USBUtils> usbUtils;
 
-    // --- Ownership of all Model objects ---
+    // --- Sở hữu (Ownership) tất cả các Model ---
     std::unique_ptr<MediaManager> mediaManager;
     std::unique_ptr<PlaylistManager> playlistManager;
     std::unique_ptr<MediaPlayer> mediaPlayer;
 
-    // --- Ownership of all Controller objects ---
+    // --- Sở hữu (Ownership) tất cả các Controller ---
     std::unique_ptr<MediaController> mediaController;
     std::unique_ptr<PlaylistController> playlistController;
-    
-    bool isRunning;
 };
