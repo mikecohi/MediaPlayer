@@ -1,6 +1,5 @@
 #include "controller/AppController.h"
 
-// Include tất cả các file .h cần thiết
 #include "utils/TagLibWrapper.h"
 #include "utils/SDLWrapper.h"
 #include "utils/DeviceConnector.h"
@@ -15,14 +14,8 @@
 
 #include <iostream>
 
-AppController::AppController() {
-    // Constructor (rỗng)
-}
-
-AppController::~AppController() {
-    // Destructor (rỗng)
-    // unique_ptr sẽ tự động dọn dẹp MỌI THỨ theo thứ tự ngược lại
-}
+AppController::AppController() {}
+AppController::~AppController() {}
 
 bool AppController::init() {
     // --- 1. Khởi tạo Utils (Không phụ thuộc) ---
@@ -41,7 +34,7 @@ bool AppController::init() {
     // --- 2. Khởi tạo Model (Phụ thuộc vào Utils) ---
     mediaPlayer = std::make_unique<MediaPlayer>(sdlWrapper.get());
     mediaManager = std::make_unique<MediaManager>(tagLibWrapper.get());
-    playlistManager = std::make_unique<PlaylistManager>();
+    playlistManager = std::make_unique<PlaylistManager>(mediaManager.get());
 
     // --- 3. Khởi tạo Controller (Phụ thuộc vào Model) ---
     mediaController = std::make_unique<MediaController>(

@@ -3,13 +3,9 @@
 #include "MediaFile.h"
 #include "utils/SDLWrapper.h"
 
-// Enum to represent the player's current state
 enum class PlayerState { STOPPED, PLAYING, PAUSED };
 
-/**
- * @class MediaPlayer
- * @brief Manages the state of media playback (play, pause, volume).
- */
+
 class MediaPlayer {
 public:
     MediaPlayer(SDLWrapper* sdlWrapper);
@@ -26,14 +22,13 @@ public:
     int getTotalTime() const;   // Gets total duration from MediaFile
     MediaFile* getCurrentTrack() const;
     
-    /**
-     * @brief A callback function to be triggered by SDLWrapper when a track finishes.
-     */
+    //Callback function to be triggered by SDLWrapper when a track finishes.
     void onTrackFinished(); 
 
 private:
-    SDLWrapper* sdlWrapper;     // Non-owning pointer
-    MediaFile* currentTrack;    // Non-owning pointer
-    PlayerState currentState;
+    SDLWrapper* sdlWrapper;     
+    MediaFile* currentTrack;  
     int currentVolume;
+
+    PlayerState currentState;
 };

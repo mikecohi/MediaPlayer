@@ -1,9 +1,7 @@
 #include "model/Playlist.h"
 #include <algorithm> // For std::find, std::remove
 
-Playlist::Playlist(const std::string& name) : name(name) {
-    // Constructor
-}
+Playlist::Playlist(const std::string& name) : name(name) {}
 
 std::string Playlist::getName() const {
     return this->name;
@@ -15,11 +13,11 @@ void Playlist::setName(const std::string& newName) {
 
 void Playlist::addTrack(MediaFile* file) {
     if (file == nullptr) {
-        return;
+        return; // Don't add null pointers
     }
-    // Optional: Check if track already exists
+    // Optional: Check if track already exists to prevent duplicates
     auto it = std::find(tracks.begin(), tracks.end(), file);
-    if (it == tracks.end()) {
+    if (it == tracks.end()) { // Add only if not already present
         tracks.push_back(file);
     }
 }
@@ -28,12 +26,15 @@ bool Playlist::removeTrack(MediaFile* file) {
     if (file == nullptr) {
         return false;
     }
-    auto it = std::find(tracks.begin(), tracks.end(), file);
+    // Use std::remove to shift the element to the end (if found)
+    auto it = std::remove(tracks.begin(), tracks.end(), file);
+
+    // Check if the element was actually found and shifted
     if (it != tracks.end()) {
-        tracks.erase(it);
+        tracks.erase(it, tracks.end()); // Erase the shifted element(s)
         return true;
     }
-    return false;
+    return false; // Element not found
 }
 
 const std::vector<MediaFile*>& Playlist::getTracks() const {

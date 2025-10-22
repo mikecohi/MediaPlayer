@@ -18,9 +18,6 @@ bool NcursesUI::initScreen() {
     keypad(stdscr, TRUE);
     curs_set(0);
 
-    // ===================================
-    // THAY ĐỔI Ở ĐÂY: Thiết lập timeout
-    // ===================================
     timeout(250); // Wait 100ms for input, then return ERR if none
 
     if (has_colors()) {

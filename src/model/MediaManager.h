@@ -7,6 +7,11 @@
 class TagLibWrapper;
 
 class MediaManager {
+private:
+    // The library owns all MediaFile objects via smart pointers
+    std::vector<std::unique_ptr<MediaFile>> library;
+    // Non-owning pointer to TagLib utility
+    TagLibWrapper* tagUtil;
 public:
     /**
      * @brief Constructor using Dependency Injection.
@@ -25,11 +30,6 @@ public:
     std::vector<MediaFile*> getPage(int pageNumber, int pageSize = 25);
     int getTotalPages(int pageSize = 25) const;
     int getTotalFileCount() const;
+    MediaFile* findFileByPath(const std::string& filePath) const;
 
-private:
-    // The library owns all MediaFile objects via smart pointers
-    std::vector<std::unique_ptr<MediaFile>> library;
-    
-    // Non-owning pointer to TagLib utility
-    TagLibWrapper* tagUtil;
 };

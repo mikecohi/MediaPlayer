@@ -15,12 +15,12 @@ public:
     AppMode handleMouse(int localY, int localX);
     bool shouldExit() const;
 
-private: // <-- PHẦN PRIVATE
+private:
     /**
      * @brief Determines the AppMode based on the currently selected option.
      * @return The AppMode corresponding to selectedOption.
      */
-    AppMode getCurrentModeSelection() const; // <-- THÊM KHAI BÁO NÀY
+    AppMode getCurrentModeSelection() const;
 
     NcursesUI* ui;
     WINDOW* win;

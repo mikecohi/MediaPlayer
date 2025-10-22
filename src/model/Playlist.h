@@ -1,17 +1,15 @@
-#ifndef PLAYLIST_H
-#define PLAYLIST_H
-
+#pragma once
 #include <string>
 #include <vector>
-#include <iostream>
-#include "MediaFile.h"
+#include "MediaFile.h" // Need MediaFile definition
 
-// Represents a single playlist that stores multiple media files
+/**
+ * @class Playlist
+ * @brief Represents a single playlist.
+ * This class does NOT own MediaFile objects; it only holds non-owning
+ * pointers to files managed by MediaManager.
+ */
 class Playlist {
-private:
-    std::string name;
-    std::vector<MediaFile*> tracks;
-
 public:
     Playlist(const std::string& name);
 
@@ -36,6 +34,9 @@ public:
      * @return A const reference to the vector of non-owning pointers.
      */
     const std::vector<MediaFile*>& getTracks() const;
-};
 
-#endif
+private:
+    std::string name;
+    // Vector of non-owning (raw) pointers to MediaFile objects
+    std::vector<MediaFile*> tracks;
+};

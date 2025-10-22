@@ -1,7 +1,6 @@
 #pragma once
 #include <memory>
 
-// Forward-declare
 class UIManager;
 class NcursesUI;
 class AppController;

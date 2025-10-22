@@ -3,6 +3,7 @@
 #include "utils/FileUtils.h"     // Include for static functions
 #include <iostream>
 #include <cmath> // For std::ceil
+#include <algorithm>
 
 MediaManager::MediaManager(TagLibWrapper* tagUtil)
     : tagUtil(tagUtil) 
@@ -14,7 +15,6 @@ void MediaManager::loadFromDirectory(const std::string& path) {
     std::cout << "MediaManager: Loading from directory: " << path << std::endl;
     this->clearLibrary();
 
-    // Dòng này đã đúng (dùng namespace)
     std::vector<std::string> files = FileUtils::getMediaFilesRecursive(path);
     
     std::cout << "MediaManager: Found " << files.size() << " media files." << std::endl;
@@ -69,4 +69,19 @@ int MediaManager::getTotalPages(int pageSize) const {
 
 int MediaManager::getTotalFileCount() const {
     return this->library.size();
+}
+
+MediaFile* MediaManager::findFileByPath(const std::string& filePath) const {
+    auto it = std::find_if(library.begin(), library.end(),
+        [&filePath](const std::unique_ptr<MediaFile>& filePtr) {
+            return filePtr->getFilePath() == filePath;
+        });
+
+    if (it != library.end()) {
+        return it->get(); // Return raw pointer
+    }
+
+    // Optional: Log if file not found during playlist load
+    // std::cerr << "MediaManager::findFileByPath: File not found in library: " << filePath << std::endl;
+    return nullptr; // Not found
 }

@@ -1,0 +1,16 @@
+[
+    {
+        "name": "Test Playlist 1",
+        "tracks": [
+            "/home/quynhmai/mock/MediaPlayer/test_media/city-of-the-star.mp3"
+        ]
+    },
+    {
+        "name": "Empty List",
+        "tracks": []
+    },
+    {
+        "name": "mai",
+        "tracks": []
+    }
+]

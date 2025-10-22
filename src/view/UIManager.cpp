@@ -1,16 +1,21 @@
 #include "view/UIManager.h"
 #include <iostream>
 #include <cmath>
-#include <tuple> // Needed for std::ignore
+#include <tuple>
+#include <vector> // Needed for popup options
 
-// Include child views and controllers
+// Include child views, controllers, and models
 #include "controller/AppController.h"
 #include "controller/MediaController.h"
+#include "controller/PlaylistController.h" // Needed for playlist actions
 #include "view/SidebarView.h"
 #include "view/BottomBarView.h"
 #include "view/MainFileView.h"
 #include "view/MainPlaylistView.h"
 #include "model/MediaFile.h"
+#include "model/Playlist.h"          // Needed for playlist actions
+#include "model/PlaylistManager.h"   // Needed for popup list
+#include "view/PopupView.h"          // <-- Include PopupView
 
 UIManager::UIManager(NcursesUI* ui, AppController* controller)
     : ui(ui), appController(controller), isRunning(false),
@@ -20,8 +25,9 @@ UIManager::UIManager(NcursesUI* ui, AppController* controller)
       currentMode(AppMode::FILE_BROWSER),
       currentFocus(FocusArea::SIDEBAR),
       // Initialize redraw flags
-      needsRedrawSidebar(true), // Redraw initially
-      needsRedrawMain(true)     // Redraw initially
+      needsRedrawSidebar(true),
+      needsRedrawMain(true),
+      popup(nullptr) // Initialize popup pointer
 {
     if (appController == nullptr) {
         std::cerr << "CRITICAL: UIManager started with null AppController!" << std::endl;
@@ -29,12 +35,7 @@ UIManager::UIManager(NcursesUI* ui, AppController* controller)
 }
 
 UIManager::~UIManager() {
-    // ncurses windows are deleted automatically if created with newwin
-    // unique_ptrs handle child views
-    // Ensure cleanup of windows explicitly if needed, but not strictly required
-    // if (sidebarWin) delwin(sidebarWin);
-    // if (mainWin) delwin(mainWin);
-    // if (bottomWin) delwin(bottomWin);
+    // Windows are managed by ncurses, unique_ptrs manage views
 }
 
 bool UIManager::init() {
@@ -44,102 +45,71 @@ bool UIManager::init() {
     mainHeight = screenH - bottomBarHeight;
     mainWidth = screenW - sidebarWidth;
 
-    if (mainHeight < 10 || mainWidth < 20) {
-        std::cerr << "Terminal is too small!" << std::endl;
-        return false;
-    }
+    if (mainHeight < 10 || mainWidth < 20) { /* Terminal too small */ return false; }
 
-    // Create ncurses windows
     sidebarWin = newwin(mainHeight, sidebarWidth, 0, 0);
     mainWin = newwin(mainHeight, mainWidth, 0, sidebarWidth);
     bottomWin = newwin(bottomBarHeight, screenW, screenH - bottomBarHeight, 0);
 
-    if (!sidebarWin || !mainWin || !bottomWin) {
-         std::cerr << "Failed to create ncurses windows!" << std::endl;
-         // Clean up partially created windows if necessary
-         if(sidebarWin) delwin(sidebarWin);
-         if(mainWin) delwin(mainWin);
-         return false;
-    }
+    if (!sidebarWin || !mainWin || !bottomWin) { /* Failed win create */ return false; }
 
-    // Initialize child views, passing necessary models/controllers
+    // Initialize child views
     sidebarView = std::make_unique<SidebarView>(ui, sidebarWin);
-    bottomBarView = std::make_unique<BottomBarView>(
-        ui,
-        appController->getMediaPlayer(),
-        bottomWin
-    );
+    bottomBarView = std::make_unique<BottomBarView>(ui, appController->getMediaPlayer(), bottomWin);
 
-    // Set the initial main view (File Browser)
     switchMainView(AppMode::FILE_BROWSER);
 
-    return true; // Initialization successful
+    // Initialize PopupView (lazy init is also fine)
+    popup = std::make_unique<PopupView>(ui, screenH, screenW);
+
+
+    return true;
 }
 
 void UIManager::run() {
     isRunning = true;
-    // No initial drawAll() here
-
     while (isRunning) {
-        InputEvent event = ui->getInput(); // Will timeout or return input
+        InputEvent event = ui->getInput();
 
-        // Process input if any occurred
         if (event.type != InputEvent::UNKNOWN) {
-            handleInput(event); // This might set redraw flags
+            handleInput(event);
         }
 
-        // --- OPTIMIZED DRAWING LOGIC ---
-        // Only redraw parts that need updating
+        // --- OPTIMIZED DRAWING ---
         if (needsRedrawSidebar && sidebarView) {
             sidebarView->draw(currentFocus == FocusArea::SIDEBAR);
-            needsRedrawSidebar = false; // Reset flag after drawing
-        } else if (sidebarView) {
-             // Still need to call wnoutrefresh if not redrawing fully
-             // This might not be necessary if draw() always calls it
-             // wnoutrefresh(sidebarWin); // Optional: ensure it's copied to virt scr
+            needsRedrawSidebar = false;
         }
-
-
         if (needsRedrawMain && mainAreaView) {
             mainAreaView->draw(currentFocus);
-            needsRedrawMain = false; // Reset flag after drawing
-        } else if (mainAreaView) {
-             // wnoutrefresh(mainWin); // Optional
+            needsRedrawMain = false;
         }
-
-        // Bottom bar *always* redraws for time/progress updates
         if (bottomBarView) {
             bottomBarView->draw(currentFocus == FocusArea::BOTTOM_BAR);
         }
-
-        // Update the physical screen once with all changes
-        doupdate();
+        doupdate(); // Update physical screen
     }
 }
 
-// Helper to check if global coordinates are inside a window
+// Helper: Check if mouse is in window
 bool is_mouse_in_window(WINDOW* win, int globalY, int globalX) {
-    // ... (implementation remains the same) ...
-    if (!win) return false;
-    int begy = getbegy(win); int begx = getbegx(win);
-    int maxy = begy + getmaxy(win); int maxx = begx + getmaxx(win);
+    if (!win) return false; int begy=getbegy(win), begx=getbegx(win), maxy=begy+getmaxy(win), maxx=begx+getmaxx(win);
     return (globalY >= begy && globalY < maxy && globalX >= begx && globalX < maxx);
 }
-
-WINDOW* UIManager::getWindowAt(int globalY, int globalX, int& localY, int& localX) {
-    // ... (implementation remains the same) ...
-    if (is_mouse_in_window(sidebarWin, globalY, globalX)) { localY = globalY - getbegy(sidebarWin); localX = globalX - getbegx(sidebarWin); return sidebarWin; }
-    if (is_mouse_in_window(mainWin, globalY, globalX)) { localY = globalY - getbegy(mainWin); localX = globalX - getbegx(mainWin); return mainWin; }
-    if (is_mouse_in_window(bottomWin, globalY, globalX)) { localY = globalY - getbegy(bottomWin); localX = globalX - getbegx(bottomWin); return bottomWin; }
+// Helper: Get window at coordinates
+WINDOW* UIManager::getWindowAt(int gY, int gX, int& lY, int& lX) {
+    if (is_mouse_in_window(sidebarWin, gY, gX)) { lY=gY-getbegy(sidebarWin); lX=gX-getbegx(sidebarWin); return sidebarWin; }
+    if (is_mouse_in_window(mainWin, gY, gX)) { lY=gY-getbegy(mainWin); lX=gX-getbegx(mainWin); return mainWin; }
+    if (is_mouse_in_window(bottomWin, gY, gX)) { lY=gY-getbegy(bottomWin); lX=gX-getbegx(bottomWin); return bottomWin; }
     return nullptr;
 }
 
-void UIManager::handleInput(InputEvent event) {
-     if (event.type == InputEvent::UNKNOWN) {
-         return; // Timeout occurred, no user input to process
-     }
 
-     FocusArea oldFocus = currentFocus; // Store previous focus
+void UIManager::handleInput(InputEvent event) {
+     if (event.type == InputEvent::UNKNOWN) return;
+
+     FocusArea oldFocus = currentFocus;
+     MainAreaAction action = MainAreaAction::NONE; // Action returned by child view
 
      // --- MOUSE HANDLING ---
      if (event.type == InputEvent::MOUSE) {
@@ -149,28 +119,24 @@ void UIManager::handleInput(InputEvent event) {
         if (clickedWin == sidebarWin && sidebarView) {
             currentFocus = FocusArea::SIDEBAR;
             AppMode newMode = sidebarView->handleMouse(localY, localX);
-            if (newMode != currentMode) {
-                switchMainView(newMode); // Will set needsRedrawMain
-            }
-            needsRedrawSidebar = true; // Sidebar selection changed visually
+            if (newMode != currentMode) switchMainView(newMode);
+            if (sidebarView->shouldExit()) isRunning = false;
+            needsRedrawSidebar = true;
         }
         else if (clickedWin == mainWin && mainAreaView) {
-            // Determine sub-focus based on click position
-            FocusArea oldMainFocus = currentFocus; // Store focus before handling
             if (localX < mainWidth / 2) currentFocus = FocusArea::MAIN_LIST;
             else currentFocus = FocusArea::MAIN_DETAIL;
-
-            mainAreaView->handleMouse(localY, localX); // Let the view update its state
-            needsRedrawMain = true; // Assume main view needs redraw after mouse
+            // Get action from mouse handler
+            action = mainAreaView->handleMouse(localY, localX);
+            needsRedrawMain = true;
         }
         else if (clickedWin == bottomWin && bottomBarView) {
             currentFocus = FocusArea::BOTTOM_BAR;
-            bool actionTaken = bottomBarView->handleMouse(localY, localX);
-            if (actionTaken && appController && appController->getMediaController()) {
+            bool pauseAction = bottomBarView->handleMouse(localY, localX);
+            if (pauseAction && appController && appController->getMediaController()) {
                  appController->getMediaController()->pauseOrResume();
-                 // Bottom bar redraws anyway, no flag needed
-            } else {
-                 needsRedrawSidebar = true; // Redraw other panels if click was in bottom but no action
+            } else { // Click elsewhere in bottom bar, ensure other panels redraw focus
+                 needsRedrawSidebar = true;
                  needsRedrawMain = true;
             }
         }
@@ -179,111 +145,197 @@ void UIManager::handleInput(InputEvent event) {
      // --- KEYBOARD HANDLING ---
      else if (event.type == InputEvent::KEYBOARD) {
         if (event.key == 9) { // Tab key
-            if (currentFocus == FocusArea::SIDEBAR) currentFocus = FocusArea::MAIN_LIST;
-            else if (currentFocus == FocusArea::MAIN_LIST) currentFocus = FocusArea::MAIN_DETAIL;
-            else if (currentFocus == FocusArea::MAIN_DETAIL) currentFocus = FocusArea::BOTTOM_BAR;
-            else if (currentFocus == FocusArea::BOTTOM_BAR) currentFocus = FocusArea::SIDEBAR;
-            // Focus change requires redrawing affected panels for highlight
-            needsRedrawSidebar = true;
-            needsRedrawMain = true;
-            return; // Only change focus
+            // ... (Tab focus logic) ...
+            if (currentFocus == FocusArea::SIDEBAR) currentFocus = FocusArea::MAIN_LIST; else if (currentFocus == FocusArea::MAIN_LIST) currentFocus = FocusArea::MAIN_DETAIL; else if (currentFocus == FocusArea::MAIN_DETAIL) currentFocus = FocusArea::BOTTOM_BAR; else if (currentFocus == FocusArea::BOTTOM_BAR) currentFocus = FocusArea::SIDEBAR;
+            needsRedrawSidebar = true; needsRedrawMain = true;
+            return;
         }
 
-        // Delegate keyboard input based on focus
         switch (currentFocus) {
             case FocusArea::SIDEBAR:
-                if (sidebarView) {
-                    AppMode oldMode = currentMode;
-                    AppMode newMode = sidebarView->handleInput(event);
-                    if (newMode != oldMode) {
-                        switchMainView(newMode); // Sets needsRedrawMain
-                    }
-                    if (sidebarView->shouldExit()) isRunning = false;
-                    needsRedrawSidebar = true; // Always redraw sidebar after input
-                }
+                if (sidebarView) { /* ... Sidebar key handling ... */ AppMode oldM=currentMode; AppMode newM=sidebarView->handleInput(event); if(newM != oldM) switchMainView(newM); if(sidebarView->shouldExit()) isRunning=false; needsRedrawSidebar=true; }
                 break;
 
             case FocusArea::MAIN_LIST:
                  if (mainAreaView) {
-                    mainAreaView->handleInput(event, currentFocus);
-                    needsRedrawMain = true; // Assume main needs redraw after key input
+                     action = mainAreaView->handleInput(event, currentFocus); // Handle Up/Down etc.
+                     needsRedrawMain = true;
                  }
                  // Special handling for Enter key to play
-                 if (event.key == 10) {
-                     MediaFile* selectedFile = nullptr;
-                     // ... (logic to get selectedFile) ...
-                     if (currentMode == AppMode::FILE_BROWSER || currentMode == AppMode::USB_BROWSER) { /* getSelectedFile */ MainFileView* fv=dynamic_cast<MainFileView*>(mainAreaView.get()); if(fv) selectedFile=fv->getSelectedFile();}
-                     else if (currentMode == AppMode::PLAYLISTS) { /* getSelectedTrack */ MainPlaylistView* pv=dynamic_cast<MainPlaylistView*>(mainAreaView.get()); if(pv) selectedFile=pv->getSelectedTrack();}
-
-
-                     if (selectedFile && appController && appController->getMediaController()) {
-                         appController->getMediaController()->playTrack(selectedFile);
-                         // Bottom bar will update on next draw cycle
-                     } else {
-                         if (ui) flash(); // Visual cue for failed play
-                     }
-                 }
-                 break; // Added missing break
+                 if (event.key == 10) { /* ... Play track logic ... */ MediaFile* sf=nullptr; if(currentMode==AppMode::FILE_BROWSER||currentMode==AppMode::USB_BROWSER){MainFileView* fv=dynamic_cast<MainFileView*>(mainAreaView.get()); if(fv) sf=fv->getSelectedFile();} else if(currentMode==AppMode::PLAYLISTS){MainPlaylistView* pv=dynamic_cast<MainPlaylistView*>(mainAreaView.get()); if(pv) sf=pv->getSelectedTrack();} if(sf&&appController&&appController->getMediaController()){appController->getMediaController()->playTrack(sf);} else{if(ui)flash();}}
+                 break;
 
             case FocusArea::MAIN_DETAIL:
                  if (mainAreaView) {
-                    mainAreaView->handleInput(event, currentFocus);
-                    needsRedrawMain = true; // Assume main needs redraw after key input
+                     action = mainAreaView->handleInput(event, currentFocus); // Handle button activation?
+                     needsRedrawMain = true;
                  }
-                 // TODO: Handle Enter/Click on [Edit Metadata] etc.
                 break;
 
             case FocusArea::BOTTOM_BAR:
-                if (event.key == ' ' || event.key == 'p') {
-                    if (appController && appController->getMediaController()) {
-                        appController->getMediaController()->pauseOrResume();
-                        // Bottom bar updates on next cycle
-                    }
-                }
-                // (TODO: Handle << >> Vol- Vol+ keys)
-                // Redraw other panels in case focus highlight needs update
-                needsRedrawSidebar = true;
-                needsRedrawMain = true;
+                 /* ... Handle Space/P for pause/resume ... */ if(event.key==' '||event.key=='p'){if(appController&&appController->getMediaController()){appController->getMediaController()->pauseOrResume();}}
+                needsRedrawSidebar = true; needsRedrawMain = true; // Redraw focus highlights
                 break;
         }
+     } // End Keyboard Handling
+
+
+     // --- HANDLE ACTION RETURNED BY MAIN VIEW (From Mouse or Keyboard) ---
+     switch (action) {
+         case MainAreaAction::CREATE_PLAYLIST:
+             showCreatePlaylistPopup();
+             break;
+         case MainAreaAction::DELETE_PLAYLIST:
+             { // Scope for variables
+                 Playlist* selectedPlaylist = nullptr;
+                 if (currentMode == AppMode::PLAYLISTS) {
+                     MainPlaylistView* plView = dynamic_cast<MainPlaylistView*>(mainAreaView.get());
+                     // Need getSelectedPlaylist() function in MainPlaylistView
+                     // Example placeholder: Assume selection index is correct
+                     if (plView && appController && appController->getPlaylistManager()) {
+                          auto playlists = appController->getPlaylistManager()->getAllPlaylists();
+                          int index = plView->getSelectedPlaylistIndex(); // Need this func
+                          if (index >= 0 && static_cast<size_t>(index) < playlists.size()) {
+                               selectedPlaylist = playlists[index];
+                          }
+                     }
+                 }
+                 if (selectedPlaylist && appController && appController->getPlaylistController()) {
+                     bool deleted = appController->getPlaylistController()->deletePlaylist(selectedPlaylist->getName());
+                     if (deleted) needsRedrawMain = true; // Update list
+                     else flash(); // Indicate error
+                 } else { flash();}
+             }
+             break;
+         case MainAreaAction::REMOVE_TRACK_FROM_PLAYLIST:
+             { // Scope for variables
+                 MediaFile* selectedTrack = nullptr;
+                 Playlist* currentPlaylist = nullptr;
+                 if (currentMode == AppMode::PLAYLISTS) {
+                    MainPlaylistView* plView = dynamic_cast<MainPlaylistView*>(mainAreaView.get());
+                    if(plView && appController && appController->getPlaylistManager()) {
+                       selectedTrack = plView->getSelectedTrack();
+                       // Need getSelectedPlaylist() function in MainPlaylistView
+                       int index = plView->getSelectedPlaylistIndex(); // Need this func
+                       auto playlists = appController->getPlaylistManager()->getAllPlaylists();
+                       if (index >= 0 && static_cast<size_t>(index) < playlists.size()) {
+                            currentPlaylist = playlists[index];
+                       }
+                    }
+                 }
+                 if (selectedTrack && currentPlaylist && appController && appController->getPlaylistController()) {
+                      bool removed = appController->getPlaylistController()->removeTrackFromPlaylist(selectedTrack, currentPlaylist);
+                      if(removed) needsRedrawMain = true; // Update track list
+                      else flash();
+                 } else { flash();}
+             }
+            break;
+         case MainAreaAction::ADD_TRACK_TO_PLAYLIST:
+             { // Scope for variable
+                 MediaFile* selectedFile = nullptr;
+                 if (currentMode == AppMode::FILE_BROWSER || currentMode == AppMode::USB_BROWSER) {
+                     MainFileView* fileView = dynamic_cast<MainFileView*>(mainAreaView.get());
+                     if(fileView) selectedFile = fileView->getSelectedFile();
+                 }
+                 if (selectedFile) {
+                     showAddToPlaylistPopup(selectedFile);
+                 } else { flash();}
+             }
+             break;
+          case MainAreaAction::EDIT_METADATA:
+              // TODO: Implement Edit Metadata Popup
+              flash(); // Placeholder feedback
+              break;
+         case MainAreaAction::NONE:
+         default:
+             // No action needed from UIManager
+             break;
      }
 
-     // If focus changed due to mouse or keyboard logic (other than Tab), redraw relevant panels
+     // Redraw if focus changed
      if(oldFocus != currentFocus) {
          needsRedrawSidebar = true;
          needsRedrawMain = true;
      }
 }
 
-void UIManager::switchMainView(AppMode newMode) {
-    // Only switch if the mode actually changes
-    if (newMode == currentMode && mainAreaView != nullptr) return;
 
-    // Store the old focus to potentially restore later if needed
-    // FocusArea oldMainFocus = (currentFocus == FocusArea::MAIN_LIST || currentFocus == FocusArea::MAIN_DETAIL) ? currentFocus : FocusArea::MAIN_LIST;
+// --- NEW POPUP HELPER METHODS ---
 
-    currentMode = newMode;
-
-    // Create the appropriate main area view
-    if (newMode == AppMode::FILE_BROWSER || newMode == AppMode::USB_BROWSER) {
-        mainAreaView = std::make_unique<MainFileView>(
-            ui,
-            mainWin,
-            appController->getMediaManager()
-        );
-        // TODO Giai đoạn 4: If USB_BROWSER, call mediaManager->loadFromDirectory("/path/to/usb")? Or pass path?
-    } else if (newMode == AppMode::PLAYLISTS) {
-        mainAreaView = std::make_unique<MainPlaylistView>(
-            ui,
-            mainWin,
-            appController->getPlaylistManager()
-        );
-    } else {
-        mainAreaView = nullptr; // Should not happen with current modes
+void UIManager::showCreatePlaylistPopup() {
+    if (!popup) { // Should be initialized in init() now
+         std::cerr << "Error: PopupView not initialized!" << std::endl;
+         return;
     }
+    std::optional<std::string> name = popup->showTextInput("Enter New Playlist Name:");
 
-    needsRedrawMain = true; // New main view needs to be drawn
-    // Optional: Reset focus to the list part of the new main view
-    // currentFocus = FocusArea::MAIN_LIST;
-    // needsRedrawSidebar = true; // Redraw sidebar if focus changes
+    // Force redraw of underlying UI after popup closes
+    needsRedrawSidebar = true;
+    needsRedrawMain = true;
+    // Bottom bar redraws anyway
+
+    if (name.has_value() && !name.value().empty() && appController && appController->getPlaylistController()) {
+        bool success = appController->getPlaylistController()->createPlaylist(name.value());
+        if (!success) {
+            flash(); // Simple visual feedback for failure (e.g., duplicate name)
+        }
+        // Always redraw main to show the updated playlist list (even on failure)
+        needsRedrawMain = true;
+    }
+}
+
+void UIManager::showAddToPlaylistPopup(MediaFile* fileToAdd) {
+     if (!fileToAdd || !appController || !appController->getPlaylistManager()) return;
+
+     // Get playlist names for options
+     std::vector<Playlist*> playlists = appController->getPlaylistManager()->getAllPlaylists();
+     std::vector<std::string> options;
+     options.reserve(playlists.size());
+     for(const auto* pl : playlists) {
+         if(pl) options.push_back(pl->getName());
+     }
+     // TODO: Optional: Add "[Create New Playlist]" option here
+
+     if (options.empty()) {
+          // TODO: Maybe show a different popup saying "No playlists exist..."
+          flash(); // Simple feedback
+          return;
+     }
+
+     if (!popup) { // Should be initialized
+          std::cerr << "Error: PopupView not initialized!" << std::endl;
+          return;
+     }
+     std::optional<int> selectedIndex = popup->showListSelection("Add to Playlist:", options);
+
+     // Force redraw after popup
+     needsRedrawSidebar = true;
+     needsRedrawMain = true;
+
+     if (selectedIndex.has_value()) {
+         int index = selectedIndex.value();
+         // TODO: Handle "[Create New Playlist]" selection if added
+
+         // Ensure index is valid for the playlists vector
+         if (index >= 0 && static_cast<size_t>(index) < playlists.size()) {
+             Playlist* selectedPlaylist = playlists[index];
+             if (selectedPlaylist && appController->getPlaylistController()) {
+                  bool added = appController->getPlaylistController()->addTrackToPlaylist(fileToAdd, selectedPlaylist);
+                  if (!added) flash(); // Feedback if adding failed (e.g., duplicate)
+                  // No need to set redraw flag here, adding track doesn't change visible list immediately
+             }
+         }
+     }
+}
+
+// --- switchMainView remains the same ---
+void UIManager::switchMainView(AppMode newMode) {
+    if (newMode == currentMode && mainAreaView != nullptr) return;
+    currentMode = newMode;
+    if (newMode == AppMode::FILE_BROWSER || newMode == AppMode::USB_BROWSER) {
+        mainAreaView = std::make_unique<MainFileView>(ui, mainWin, appController->getMediaManager());
+    } else if (newMode == AppMode::PLAYLISTS) {
+        mainAreaView = std::make_unique<MainPlaylistView>(ui, mainWin, appController->getPlaylistManager());
+    } else { mainAreaView = nullptr; }
+    needsRedrawMain = true;
 }

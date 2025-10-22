@@ -10,13 +10,18 @@ MainFileView::MainFileView(NcursesUI* ui, WINDOW* win, MediaManager* manager)
     : ui(ui), win(win), mediaManager(manager),
       filePage(1), fileSelected(0)
 {
+    // Initialize button positions (can be done here or in draw)
+    editButtonY = editButtonX = editButtonW = 0;
+    addButtonY = addButtonX = addButtonW = 0;
+
+    // Calculate pagination based on initial window size
     int width, height;
     getmaxyx(win, height, width);
-
-    itemsPerPage = height - 6;
+    itemsPerPage = height - 6; // Reserve lines for header, borders, footer spacing
     if (itemsPerPage < 1) itemsPerPage = 1;
 
-    totalPages = mediaManager->getTotalPages(itemsPerPage);
+    // Get initial totalPages from manager
+    totalPages = mediaManager ? mediaManager->getTotalPages(itemsPerPage) : 1;
     if (totalPages == 0) totalPages = 1;
 }
 
@@ -31,103 +36,184 @@ void MainFileView::draw(FocusArea focus) {
     // --- DEBUG LOG ---
     int totalFilesDebug = 0;
     if (mediaManager) totalFilesDebug = mediaManager->getTotalFileCount();
-    mvwprintw(win, height - 1, 2, "DEBUG: Draw | Files=%d Page=%d Sel=%d",
+    mvwprintw(win, height - 1, 2, "DEBUG: Files=%d Pg=%d Sel=%d",
               totalFilesDebug, filePage, fileSelected);
     // --- END DEBUG LOG ---
 
-    totalPages = mediaManager->getTotalPages(itemsPerPage);
+    // Recalculate totalPages (window might have resized)
+    itemsPerPage = height - 6; // Update itemsPerPage based on current height
+    if (itemsPerPage < 1) itemsPerPage = 1;
+    totalPages = mediaManager ? mediaManager->getTotalPages(itemsPerPage) : 1;
     if (totalPages == 0) totalPages = 1;
-    if (filePage > totalPages) filePage = totalPages;
+    if (filePage > totalPages) filePage = totalPages; // Clamp page number
 
-    // Draw list panel
+    // --- Draw list panel ---
     mvwprintw(win, 2, 3, "File List (Page %d/%d)", filePage, totalPages);
-    std::vector<MediaFile*> filesOnPage = mediaManager->getPage(filePage, itemsPerPage);
+    std::vector<MediaFile*> filesOnPage = mediaManager ? mediaManager->getPage(filePage, itemsPerPage) : std::vector<MediaFile*>();
 
     if (filesOnPage.empty() && totalFilesDebug > 0) {
-         mvwprintw(win, 4, 3, "Error: No files on this page?");
+         mvwprintw(win, 4, 3, "(No files on this page)");
     }
 
     for (size_t i = 0; i < filesOnPage.size(); ++i) {
+        // Ensure we don't draw outside the window height
+        if (4 + (int)i >= height - 2) break; // Check against available lines
+
         int fileIdxGlobal = (filePage - 1) * itemsPerPage + i;
         if (focus == FocusArea::MAIN_LIST && fileIdxGlobal == fileSelected) {
             wattron(win, A_REVERSE | A_BOLD);
         }
+        // Truncate filename display
         mvwprintw(win, 4 + i, 3, "%.*s", listWidth - 5, filesOnPage[i]->getFileName().c_str());
         wattroff(win, A_REVERSE | A_BOLD);
     }
+     // Optional: Draw Prev/Next page indicators/buttons
+     mvwprintw(win, height - 3, 3, "[< Prev]"); // Placeholder
+     mvwprintw(win, height - 3, 12, "[Next >]"); // Placeholder
 
-    // Draw detail panel
+
+    // --- Draw detail panel ---
     mvwprintw(win, 2, listWidth + 2, "Metadata");
-    if (focus == FocusArea::MAIN_DETAIL) wattron(win, A_REVERSE | A_BOLD);
-    mvwprintw(win, 8, listWidth + 2, "[Edit Metadata]");
-    wattroff(win, A_REVERSE | A_BOLD);
 
     MediaFile* selectedFile = getSelectedFile();
     if (selectedFile && selectedFile->getMetadata()) {
-         mvwprintw(win, 4, listWidth + 2, "Title: %s", selectedFile->getMetadata()->title.c_str());
+         mvwprintw(win, 4, listWidth + 2, "Title: %.*s", width-listWidth-4, selectedFile->getMetadata()->title.c_str());
+         // (Draw other metadata fields here)
+         // Example:
+         // mvwprintw(win, 5, listWidth + 2, "Artist: %.*s", width-listWidth-4, selectedFile->getMetadata()->getField("artist").c_str());
+         // mvwprintw(win, 6, listWidth + 2, "Album: %.*s", width-listWidth-4, selectedFile->getMetadata()->getField("album").c_str());
+
     } else {
          mvwprintw(win, 4, listWidth + 2, "Title: N/A");
          if (fileSelected >= 0 && fileSelected < totalFilesDebug) {
-             mvwprintw(win, 5, listWidth + 2, "(getSelectedFile failed?)");
+             mvwprintw(win, 5, listWidth + 2, "(No metadata loaded?)");
          }
     }
+
+    // Calculate and draw buttons
+    editButtonY = height - 4; // Position near bottom
+    editButtonX = listWidth + 2;
+    std::string editLabel = "[Edit Metadata]";
+    editButtonW = editLabel.length();
+
+    addButtonY = height - 3; // Position near bottom
+    addButtonX = listWidth + 2;
+    std::string addLabel = "[Add to Playlist]";
+    addButtonW = addLabel.length();
+
+    // Draw buttons, highlight if detail panel has focus
+    if (focus == FocusArea::MAIN_DETAIL) wattron(win, A_REVERSE | A_BOLD);
+    mvwprintw(win, editButtonY, editButtonX, "%s", editLabel.c_str());
+    mvwprintw(win, addButtonY, addButtonX, "%s", addLabel.c_str());
+    wattroff(win, A_REVERSE | A_BOLD);
+    // --- END DRAW BUTTONS ---
 
     wnoutrefresh(win);
 }
 
-void MainFileView::handleInput(InputEvent event, FocusArea focus) {
+// Update return type to MainAreaAction
+MainAreaAction MainFileView::handleInput(InputEvent event, FocusArea focus) {
+    if (!mediaManager) return MainAreaAction::NONE; // Safety check
+
     int totalFiles = mediaManager->getTotalFileCount();
     if (focus == FocusArea::MAIN_LIST && totalFiles > 0) {
         int oldSelected = fileSelected;
+        int oldPage = filePage;
+
         if (event.key == KEY_DOWN) fileSelected = std::min(fileSelected + 1, totalFiles - 1);
         if (event.key == KEY_UP) fileSelected = std::max(0, fileSelected - 1);
-        // Page Up/Down Keys
-        else if (event.key == KEY_PPAGE && filePage > 1) {
-             filePage--;
+        else if (event.key == KEY_PPAGE) { // Page Up
+             filePage = std::max(1, filePage - 1);
              fileSelected = (filePage - 1) * itemsPerPage; // Select top item
         }
-        else if (event.key == KEY_NPAGE && filePage < totalPages) {
-             filePage++;
+        else if (event.key == KEY_NPAGE) { // Page Down
+             filePage = std::min(totalPages, filePage + 1);
              fileSelected = (filePage - 1) * itemsPerPage; // Select top item
         }
 
-        // Auto-scroll page if selection changes
-        if (fileSelected != oldSelected) {
-            int newPage = (fileSelected / itemsPerPage) + 1;
-            if (newPage != filePage) filePage = newPage;
+        // Auto-scroll page if selection moved via UP/DOWN keys
+        if (event.key == KEY_UP || event.key == KEY_DOWN) {
+             if (fileSelected != oldSelected) {
+                 int newPage = (fileSelected / itemsPerPage) + 1;
+                 if (newPage != filePage) filePage = newPage;
+             }
         }
     }
-    // TODO: Handle input for MAIN_DETAIL (e.g., Enter on [Edit Metadata])
+    else if (focus == FocusArea::MAIN_DETAIL && event.key == 10) { // Enter on detail panel
+        // Placeholder: Assume Enter hits "Add to Playlist"
+        return MainAreaAction::ADD_TRACK_TO_PLAYLIST;
+        // (Later, add logic to select between Edit/Add buttons using Up/Down)
+    }
+    return MainAreaAction::NONE;
 }
 
-void MainFileView::handleMouse(int localY, int localX) {
-    int listStartY = 4; // Files start at line Y=4
-    int clickedIndexOnPage = localY - listStartY;
+// Update return type to MainAreaAction
+MainAreaAction MainFileView::handleMouse(int localY, int localX) {
+    if (!mediaManager) return MainAreaAction::NONE;
 
-    // Check if click is within the list area (left panel)
-    int width;
-    getmaxyx(win, std::ignore, width);
-    if (localX < width / 2) {
+    int listStartY = 4;
+    int clickedIndexOnPage = localY - listStartY;
+    int width; getmaxyx(win, std::ignore, width); int listWidth = width / 2;
+
+    if (localX < listWidth) { // Click on list panel
         if (clickedIndexOnPage >= 0 && clickedIndexOnPage < itemsPerPage) {
             int clickedIndexGlobal = (filePage - 1) * itemsPerPage + clickedIndexOnPage;
+            // Check if clicked index is valid within the total number of files
             if (clickedIndexGlobal < mediaManager->getTotalFileCount()) {
                 fileSelected = clickedIndexGlobal;
+                // Optional: Trigger play on double-click? (Would need event state)
             }
         }
+        // Check clicks on Prev/Next buttons
+        int height; getmaxyx(win, height, width); // Get height again
+        if (localY == height - 3) { // Clicked on button row
+            if (localX >= 3 && localX < 3 + 8) { // Clicked [< Prev]
+                filePage = std::max(1, filePage - 1);
+                fileSelected = (filePage - 1) * itemsPerPage;
+            } else if (localX >= 12 && localX < 12 + 8) { // Clicked [Next >]
+                filePage = std::min(totalPages, filePage + 1);
+                fileSelected = (filePage - 1) * itemsPerPage;
+            }
+        }
+
+    } else { // Click on detail panel
+        // Check if Edit button clicked (Using stored positions from draw())
+        if (localY == editButtonY && localX >= editButtonX && localX < editButtonX + editButtonW) {
+             return MainAreaAction::EDIT_METADATA;
+        }
+        // Check if Add button clicked
+        if (localY == addButtonY && localX >= addButtonX && localX < addButtonX + addButtonW) {
+             return MainAreaAction::ADD_TRACK_TO_PLAYLIST;
+        }
     }
-    // TODO: Handle clicks in the detail area (right panel)
+    return MainAreaAction::NONE; // No specific action triggered
 }
 
 MediaFile* MainFileView::getSelectedFile() const {
+    if (!mediaManager) return nullptr;
     int totalFiles = mediaManager->getTotalFileCount();
     if (fileSelected < 0 || fileSelected >= totalFiles) return nullptr;
+
     int targetPage = (fileSelected / itemsPerPage) + 1;
     int indexOnPage = fileSelected % itemsPerPage;
+
+    // Make sure calculated page is valid (can happen if itemsPerPage changes)
+    if (targetPage < 1 || targetPage > totalPages) {
+         std::cerr << "Error in getSelectedFile: Calculated targetPage " << targetPage << " is out of bounds (1-" << totalPages << ")" << std::endl;
+         return nullptr;
+    }
+
+
     std::vector<MediaFile*> pageData = mediaManager->getPage(targetPage, itemsPerPage);
     if (indexOnPage >= 0 && static_cast<size_t>(indexOnPage) < pageData.size()) {
         return pageData[indexOnPage];
     }
+
+    // Log if calculation seems off
     std::cerr << "Error in getSelectedFile: indexOnPage=" << indexOnPage
-              << ", pageData.size=" << pageData.size() << std::endl;
+              << ", pageData.size=" << pageData.size()
+              << ", fileSelected=" << fileSelected
+              << ", itemsPerPage=" << itemsPerPage
+              << ", targetPage=" << targetPage << std::endl;
     return nullptr;
 }

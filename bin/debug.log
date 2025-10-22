@@ -12,63 +12,6 @@ MediaManager: Found 4 media files.
 MediaManager: Load complete. Library size: 4
 DEBUG App::init: MediaManager reports 4 files AFTER loading from /home/quynhmai/mock/MediaPlayer/test_media.
 App: Media loading complete.
-MediaController: playTrack called for Background 1.mp3
-DEBUG SDLWrapper: playAudio requested for: /home/quynhmai/mock/MediaPlayer/test_media/Background 1.mp3
-DEBUG SDLWrapper: Loading music with Mix_LoadMUS...
-DEBUG SDLWrapper: Music loaded successfully.
-DEBUG SDLWrapper: Calling Mix_PlayMusic...
-DEBUG SDLWrapper: Mix_PlayMusic call succeeded. Playback started.
-MediaController: pauseOrResume called.
-DEBUG SDLWrapper: Pausing music.
-MediaController: playTrack called for Dreamers.mp3
-DEBUG SDLWrapper: playAudio requested for: /home/quynhmai/mock/MediaPlayer/test_media/Dreamers.mp3
-DEBUG SDLWrapper: Halting music.
-DEBUG SDLWrapper: musicFinishedCallback() triggered.
-MediaPlayer: Track finished.
-DEBUG SDLWrapper: Freeing current music resource.
-DEBUG SDLWrapper: Loading music with Mix_LoadMUS...
-DEBUG SDLWrapper: Music loaded successfully.
-DEBUG SDLWrapper: Calling Mix_PlayMusic...
-DEBUG SDLWrapper: Mix_PlayMusic call succeeded. Playback started.
-MediaController: pauseOrResume called.
-DEBUG SDLWrapper: Pausing music.
-MediaController: playTrack called for Background 2.mp3
-DEBUG SDLWrapper: playAudio requested for: /home/quynhmai/mock/MediaPlayer/test_media/Background 2.mp3
-DEBUG SDLWrapper: Halting music.
-DEBUG SDLWrapper: musicFinishedCallback() triggered.
-MediaPlayer: Track finished.
-DEBUG SDLWrapper: Freeing current music resource.
-DEBUG SDLWrapper: Loading music with Mix_LoadMUS...
-DEBUG SDLWrapper: Music loaded successfully.
-DEBUG SDLWrapper: Calling Mix_PlayMusic...
-DEBUG SDLWrapper: Mix_PlayMusic call succeeded. Playback started.
-MediaController: pauseOrResume called.
-DEBUG SDLWrapper: Pausing music.
-MediaController: pauseOrResume called.
-DEBUG SDLWrapper: Resuming music.
-MediaController: pauseOrResume called.
-DEBUG SDLWrapper: Pausing music.
-MediaController: playTrack called for city-of-the-star.mp3
-DEBUG SDLWrapper: playAudio requested for: /home/quynhmai/mock/MediaPlayer/test_media/city-of-the-star.mp3
-DEBUG SDLWrapper: Halting music.
-DEBUG SDLWrapper: musicFinishedCallback() triggered.
-MediaPlayer: Track finished.
-DEBUG SDLWrapper: Freeing current music resource.
-DEBUG SDLWrapper: Loading music with Mix_LoadMUS...
-DEBUG SDLWrapper: Music loaded successfully.
-DEBUG SDLWrapper: Calling Mix_PlayMusic...
-DEBUG SDLWrapper: Mix_PlayMusic call succeeded. Playback started.
-MediaController: playTrack called for city-of-the-star.mp3
-DEBUG SDLWrapper: playAudio requested for: /home/quynhmai/mock/MediaPlayer/test_media/city-of-the-star.mp3
-DEBUG SDLWrapper: Halting music.
-DEBUG SDLWrapper: musicFinishedCallback() triggered.
-MediaPlayer: Track finished.
-DEBUG SDLWrapper: Freeing current music resource.
-DEBUG SDLWrapper: Loading music with Mix_LoadMUS...
-DEBUG SDLWrapper: Music loaded successfully.
-DEBUG SDLWrapper: Calling Mix_PlayMusic...
-DEBUG SDLWrapper: Mix_PlayMusic call succeeded. Playback started.
-MediaController: pauseOrResume called.
-DEBUG SDLWrapper: Pausing music.
-MediaController: pauseOrResume called.
-DEBUG SDLWrapper: Resuming music.
+App: Loading playlists from /home/quynhmai/mock/MediaPlayer/playlist/playlists.json...
+PlaylistManager: Playlists loaded successfully from /home/quynhmai/mock/MediaPlayer/playlist/playlists.json
+--- Application Shutting Down ---

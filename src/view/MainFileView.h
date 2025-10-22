@@ -9,8 +9,8 @@ class MainFileView : public IMainAreaView {
 public:
     MainFileView(NcursesUI* ui, WINDOW* win, MediaManager* manager);
     void draw(FocusArea focus) override;
-    void handleInput(InputEvent event, FocusArea focus) override;
-    void handleMouse(int localY, int localX) override;
+    MainAreaAction handleInput(InputEvent event, FocusArea focus) override;
+    MainAreaAction handleMouse(int localY, int localX) override;
     MediaFile* getSelectedFile() const;
 
 private:
@@ -18,4 +18,8 @@ private:
     WINDOW* win;
     MediaManager* mediaManager;
     int filePage, totalPages, itemsPerPage, fileSelected;
+
+    //Store button locations for mouse clicks
+    int editButtonY, editButtonX, editButtonW;
+    int addButtonY, addButtonX, addButtonW;
 };

@@ -9,6 +9,8 @@ class SidebarView;
 class BottomBarView;
 class IMainAreaView;
 class AppController;
+class MediaFile; 
+class PopupView; 
 
 // Enums
 enum class AppMode {
@@ -61,4 +63,10 @@ private:
 
     bool needsRedrawSidebar;
     bool needsRedrawMain;
+
+    // --- ADD HELPER METHODS FOR POPUPS ---
+    void showCreatePlaylistPopup();
+    void showAddToPlaylistPopup(MediaFile* fileToAdd);
+    // Add PopupView member
+    std::unique_ptr<PopupView> popup; // Used for various popups
 };

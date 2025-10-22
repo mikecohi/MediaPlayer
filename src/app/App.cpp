@@ -3,13 +3,23 @@
 #include "view/UIManager.h"
 #include "controller/AppController.h"
 #include <iostream>
-#include <fstream> // For file logging if needed
+#include <fstream> 
 
-#include "model/MediaManager.h" // Needed for the log below
+#include "model/MediaManager.h" 
 #include "model/PlaylistManager.h"
 
+const std::string PLAYLIST_FILENAME = "/home/quynhmai/mock/MediaPlayer/playlist/playlists.json";
+
 App::App() {}
-App::~App() {}
+App::~App() {
+    if (appController && appController->getPlaylistManager()) {
+        std::cout << "App: Saving playlists to " << PLAYLIST_FILENAME << "..." << std::endl;
+        // Use the constant filename
+        appController->getPlaylistManager()->saveToFile(PLAYLIST_FILENAME);
+    }
+    std::cout << "App: Cleanup complete." << std::endl;
+    // unique_ptrs handle cleanup of uiManager, appController, ui
+}
 
 bool App::init() {
     ui = std::make_unique<NcursesUI>();
@@ -29,7 +39,8 @@ bool App::init() {
         std::cerr << "Failed to initialize UIManager!" << std::endl;
         return false;
     }
-
+    
+    // --- LOAD MEDIA ---
     std::cout << "App: Loading initial media from ./test_media ..." << std::endl;
     std::string mediaPath = "/home/quynhmai/mock/MediaPlayer/test_media";
     appController->getMediaManager()->loadFromDirectory(mediaPath);
@@ -48,6 +59,12 @@ bool App::init() {
     // --- END LOGGING ---
 
     std::cout << "App: Media loading complete." << std::endl;
+
+    // --- LOAD PLAYLISTS AFTER MEDIA ---
+    if (appController && appController->getPlaylistManager()) {
+        std::cout << "App: Loading playlists from " << PLAYLIST_FILENAME << "..." << std::endl;
+        appController->getPlaylistManager()->loadFromFile(PLAYLIST_FILENAME);
+    }
 
     return true;
 }
