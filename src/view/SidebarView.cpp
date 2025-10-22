@@ -10,7 +10,7 @@ SidebarView::SidebarView(NcursesUI* ui, WINDOW* win)
 void SidebarView::draw(bool hasFocus) {
     werase(win);
     box(win, 0, 0);
-    mvwprintw(win, 0, (getmaxx(win) - 8)/2, "Navigate"); // Center title
+    //mvwprintw(win, 0, (getmaxx(win) - 8)/2, "Navigate"); // Center title
 
     for (size_t i = 0; i < options.size(); ++i) {
         if (static_cast<int>(i) == selectedOption) {

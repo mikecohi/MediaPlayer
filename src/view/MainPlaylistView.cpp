@@ -4,17 +4,31 @@
 #include <algorithm>
 #include <string>
 #include <tuple>
-#include <vector> // Needed for tracks vector
+#include <vector>
+#include <cmath> // Needed for ceil
 
 MainPlaylistView::MainPlaylistView(NcursesUI* ui, WINDOW* win, PlaylistManager* manager)
     : ui(ui), win(win), playlistManager(manager),
-      playlistSelected(0), trackSelected(0)
+      playlistSelected(0), trackSelected(0),
+      playlistPage(1) // Start playlist page at 1
 {
     // Initialize button positions
     createBtnY = createBtnX = createBtnW = 0;
     deleteBtnY = deleteBtnX = deleteBtnW = 0;
     playBtnY = playBtnX = playBtnW = 0;
     removeBtnY = removeBtnX = removeBtnW = 0;
+    prevBtnY = prevBtnX = prevBtnW = 0;
+    nextBtnY = nextBtnX = nextBtnW = 0;
+
+    // Calculate initial pagination for playlists
+    int width, height;
+    getmaxyx(win, height, width);
+    // Lines available for playlist names (exclude box, header, buttons)
+    int availableLines = height - 4 - 2 - 1; // -1 for button row
+    if (availableLines < 1) availableLines = 1;
+    playlistsPerPage = std::min(25, availableLines); // Apply max 25 limit
+
+    totalPlaylistPages = 0; // Will be calculated in draw()
 }
 
 void MainPlaylistView::draw(FocusArea focus) {
@@ -24,6 +38,7 @@ void MainPlaylistView::draw(FocusArea focus) {
     int width, height;
     getmaxyx(win, height, width);
     int listWidth = width / 2;
+    int detailWidth = width - listWidth;
 
     if (!playlistManager) { // Safety check
         mvwprintw(win, 2, 3, "Error: PlaylistManager is null!");
@@ -32,43 +47,80 @@ void MainPlaylistView::draw(FocusArea focus) {
     }
 
     std::vector<Playlist*> playlists = playlistManager->getAllPlaylists();
+    int totalPlaylists = playlists.size();
+
+    // --- RECALCULATE PAGINATION for Playlists ---
+    int availableLines = height - 4 - 2 - 1; // Recalculate based on current height
+    if (availableLines < 1) availableLines = 1;
+    playlistsPerPage = std::min(25, availableLines);
+    totalPlaylistPages = (totalPlaylists > 0) ? static_cast<int>(std::ceil(static_cast<double>(totalPlaylists) / playlistsPerPage)) : 1;
+    if (playlistPage > totalPlaylistPages) playlistPage = totalPlaylistPages;
 
     // --- Draw playlist list panel ---
-    mvwprintw(win, 2, 3, "Playlists (%d)", static_cast<int>(playlists.size()));
-    int maxPlaylistsToShow = height - 6; // Reserve lines
-    if (maxPlaylistsToShow < 0) maxPlaylistsToShow = 0;
+    // Header with pagination buttons
+    std::string pageInfo = "Page " + std::to_string(playlistPage) + "/" + std::to_string(totalPlaylistPages);
+    std::string prevLabel = "[< Prev]"; prevBtnW = prevLabel.length();
+    std::string nextLabel = "[Next >]"; nextBtnW = nextLabel.length();
+    prevBtnY = 2; prevBtnX = 3; // Position Prev left
+    nextBtnY = 2; nextBtnX = listWidth - nextBtnW - 2; // Position Next right
+    mvwprintw(win, prevBtnY, prevBtnX, "%s", prevLabel.c_str());
+    mvwprintw(win, 2, (listWidth - pageInfo.length()) / 2, "%s", pageInfo.c_str()); // Center page info
+    mvwprintw(win, nextBtnY, nextBtnX, "%s", nextLabel.c_str());
 
-    for (size_t i = 0; i < playlists.size() && (int)i < maxPlaylistsToShow; ++i) {
-        if (focus == FocusArea::MAIN_LIST && (int)i == playlistSelected) {
-             wattron(win, A_REVERSE | A_BOLD);
+    // Playlist content for the current page
+    int start = (playlistPage - 1) * playlistsPerPage;
+    for (int i = 0; i < playlistsPerPage; ++i) { // Loop up to playlistsPerPage
+        int lineY = 4 + i;
+        if (lineY >= height - 3) break; // Stop before button row
+
+        int playlistIdxGlobal = start + i;
+
+        if (playlistIdxGlobal < totalPlaylists) { // Check if index is valid
+            if (focus == FocusArea::MAIN_LIST && playlistIdxGlobal == playlistSelected) {
+                 wattron(win, A_REVERSE | A_BOLD);
+            }
+            std::string name = playlists[playlistIdxGlobal]->getName();
+            std::string count = "(" + std::to_string(playlists[playlistIdxGlobal]->getTracks().size()) + ")";
+            std::string entry = name + " " + count;
+            mvwprintw(win, lineY, 3, "%.*s", listWidth - 5, entry.c_str()); // Truncate display
+            wattroff(win, A_REVERSE | A_BOLD);
+        } else {
+             mvwprintw(win, lineY, 3, "%*s", listWidth - 5, ""); // Clear unused lines
         }
-        std::string name = playlists[i]->getName();
-        std::string count = "(" + std::to_string(playlists[i]->getTracks().size()) + ")";
-        std::string entry = name + " " + count;
-        mvwprintw(win, 4 + i, 3, "%.*s", listWidth - 5, entry.c_str());
-        wattroff(win, A_REVERSE | A_BOLD);
     }
 
     // --- Draw track list panel ---
-    mvwprintw(win, 2, listWidth + 2, "Tracks in Playlist");
-    std::vector<MediaFile*> tracks; // Define tracks vector here
-    Playlist* currentSelectedPlaylist = nullptr;
-    int maxTracksToShow = height - 6; // Reserve lines
-     if (maxTracksToShow < 0) maxTracksToShow = 0;
+    // Header
+    mvwprintw(win, 2, listWidth + (detailWidth - 18)/2, "Tracks in Playlist"); // Center title
 
+    // --- ADD BORDER ---
+    mvwhline(win, 3, listWidth + 1, ACS_HLINE, detailWidth - 2); // Top border
+    mvwhline(win, height - 4, listWidth + 1, ACS_HLINE, detailWidth - 2); // Bottom border
+    mvwvline(win, 4, listWidth, ACS_VLINE, height - 7); // Left border
+    mvwvline(win, 4, width - 2, ACS_VLINE, height - 7); // Right border
+    mvwaddch(win, 3, listWidth, ACS_ULCORNER);
+    mvwaddch(win, 3, width - 2, ACS_URCORNER);
+    mvwaddch(win, height - 4, listWidth, ACS_LLCORNER);
+    mvwaddch(win, height - 4, width - 2, ACS_LRCORNER);
+    // --- END BORDER ---
 
-    if (playlistSelected >= 0 && static_cast<size_t>(playlistSelected) < playlists.size()) {
-        currentSelectedPlaylist = playlists[playlistSelected];
-        tracks = currentSelectedPlaylist->getTracks(); // Assign tracks
+    // Track content
+    std::vector<MediaFile*> tracks;
+    Playlist* currentSelectedPlaylist = getSelectedPlaylist(); // Use helper
+    int maxTracksToShow = height - 4 - 2 - 1; // Lines inside border, excluding button
+    if (maxTracksToShow < 0) maxTracksToShow = 0;
 
+    if (currentSelectedPlaylist) {
+        tracks = currentSelectedPlaylist->getTracks();
         if (tracks.empty()) {
             mvwprintw(win, 4, listWidth + 2, "(No tracks)");
         } else {
             for (size_t i = 0; i < tracks.size() && (int)i < maxTracksToShow; ++i) {
+                if (4 + (int)i >= height - 4) break; // Don't draw outside border
                 if (focus == FocusArea::MAIN_DETAIL && (int)i == trackSelected) {
                     wattron(win, A_REVERSE | A_BOLD);
                 }
-                mvwprintw(win, 4 + i, listWidth + 2, "%.*s", width - listWidth - 4, tracks[i]->getFileName().c_str());
+                mvwprintw(win, 4 + i, listWidth + 2, "%.*s", detailWidth - 4, tracks[i]->getFileName().c_str());
                 wattroff(win, A_REVERSE | A_BOLD);
             }
         }
@@ -78,66 +130,79 @@ void MainPlaylistView::draw(FocusArea focus) {
         mvwprintw(win, 4, listWidth + 2, "(No playlists created)");
     }
 
-    // --- Draw Buttons ---
-    // Playlist buttons
-    createBtnY = height - 3; // Position near bottom
-    createBtnX = 3;
+    // --- Draw Buttons (at bottom, coordinates stored for mouse handling) ---
+    int buttonY = height - 3; // All buttons on the same line
+
+    // Playlist buttons (Left panel)
     std::string createLabel = "[Create]"; createBtnW = createLabel.length();
-    mvwprintw(win, createBtnY, createBtnX, "%s", createLabel.c_str());
-
-    deleteBtnX = createBtnX + createBtnW + 2;
     std::string deleteLabel = "[Delete]"; deleteBtnW = deleteLabel.length();
-    mvwprintw(win, createBtnY, deleteBtnX, "%s", deleteLabel.c_str());
-
-    playBtnX = deleteBtnX + deleteBtnW + 2;
     std::string playLabel = "[Play]"; playBtnW = playLabel.length();
-    mvwprintw(win, createBtnY, playBtnX, "%s", playLabel.c_str());
+    
+    // Align left, center, and right within the left panel
+    createBtnY = buttonY; createBtnX = 3; // Align left
+    deleteBtnY = buttonY; deleteBtnX = (listWidth - deleteBtnW) / 2; // Align center
+    playBtnY = buttonY; playBtnX = listWidth - playBtnW - 2; // Align right
+    
+    mvwprintw(win, createBtnY, createBtnX, "%s", createLabel.c_str());
+    mvwprintw(win, deleteBtnY, deleteBtnX, "%s", deleteLabel.c_str());
+    mvwprintw(win, playBtnY, playBtnX, "%s", playLabel.c_str());
 
-    // Track button
-    removeBtnY = height - 3; // Position near bottom
-    removeBtnX = listWidth + 2;
+    // Track button (Right panel) - Center it
     std::string removeLabel = "[Remove Song]"; removeBtnW = removeLabel.length();
+    removeBtnY = buttonY;
+    // Calculate center position relative to the start of the right panel
+    removeBtnX = listWidth + (detailWidth - removeBtnW) / 2;
+    
     mvwprintw(win, removeBtnY, removeBtnX, "%s", removeLabel.c_str());
 
-    // Highlight based on focus (optional, can be complex)
-    // Example: Highlight first button if focus is on the corresponding panel
-    if (focus == FocusArea::MAIN_LIST) {
-        wattron(win, A_BOLD);
-        mvwprintw(win, createBtnY, createBtnX, "%s", createLabel.c_str());
-        wattroff(win, A_BOLD);
-    }
-     if (focus == FocusArea::MAIN_DETAIL && !tracks.empty()) { // Only highlight if tracks exist
-        wattron(win, A_BOLD);
-        mvwprintw(win, removeBtnY, removeBtnX, "%s", removeLabel.c_str());
-        wattroff(win, A_BOLD);
-    }
+    // Optional highlight based on focus
+    if (focus == FocusArea::MAIN_LIST) { wattron(win, A_BOLD); mvwprintw(win, createBtnY, createBtnX, "%s", createLabel.c_str()); wattroff(win, A_BOLD); }
+    if (focus == FocusArea::MAIN_DETAIL && !tracks.empty()) { wattron(win, A_BOLD); mvwprintw(win, removeBtnY, removeBtnX, "%s", removeLabel.c_str()); wattroff(win, A_BOLD); }
 
     wnoutrefresh(win);
 }
 
-// Update return type to MainAreaAction
 MainAreaAction MainPlaylistView::handleInput(InputEvent event, FocusArea focus) {
      if (!playlistManager) return MainAreaAction::NONE;
 
     std::vector<Playlist*> playlists = playlistManager->getAllPlaylists();
     int playlistCount = playlists.size();
     int trackCount = 0;
-    if (playlistSelected >= 0 && static_cast<size_t>(playlistSelected) < playlists.size()) {
-         trackCount = playlists[playlistSelected]->getTracks().size();
-    }
-
+    Playlist* currentPlaylist = getSelectedPlaylist();
+    if (currentPlaylist) trackCount = currentPlaylist->getTracks().size();
 
     if (focus == FocusArea::MAIN_LIST) {
         int oldSelected = playlistSelected;
         if (event.key == KEY_DOWN && playlistCount > 0) playlistSelected = std::min(playlistSelected + 1, playlistCount - 1);
         if (event.key == KEY_UP) playlistSelected = std::max(0, playlistSelected - 1);
-        if (playlistSelected != oldSelected) trackSelected = 0; // Reset track selection
+        // --- ADD PAGINATION KEYS ---
+        else if (event.key == KEY_PPAGE) { // Page Up
+            if (playlistPage > 1) {
+                playlistPage--;
+                playlistSelected = (playlistPage - 1) * playlistsPerPage; // Select top
+            }
+        }
+        else if (event.key == KEY_NPAGE) { // Page Down
+            if (playlistPage < totalPlaylistPages) {
+                playlistPage++;
+                playlistSelected = (playlistPage - 1) * playlistsPerPage; // Select top
+                playlistSelected = std::min(playlistSelected, playlistCount - 1); // Clamp
+            }
+        }
+        // --- END PAGINATION KEYS ---
 
-        // Handle Enter key on buttons (simplified: Enter activates first button)
-        if (event.key == 10) return MainAreaAction::CREATE_PLAYLIST; // Assume Enter hits Create
-        // Handle 'c' key for create
+        // Auto-scroll page if selection moved via UP/DOWN
+        if (playlistSelected != oldSelected) {
+            trackSelected = 0; // Reset track selection
+            int newPage = (playlistSelected < 0) ? 1 : (playlistSelected / playlistsPerPage) + 1;
+            if (newPage != playlistPage) playlistPage = newPage;
+        }
+
+        // --- Button Activation ---
+        if (event.key == 10) { // Enter - Activate [Delete]
+             if (playlistCount > 0 && playlistSelected >= 0) return MainAreaAction::DELETE_PLAYLIST;
+        }
         if (event.key == 'c') return MainAreaAction::CREATE_PLAYLIST;
-        // Handle 'd' key for delete (requires selection check)
         if (event.key == 'd' && playlistCount > 0 && playlistSelected >= 0) return MainAreaAction::DELETE_PLAYLIST;
 
     } else if (focus == FocusArea::MAIN_DETAIL) {
@@ -145,48 +210,70 @@ MainAreaAction MainPlaylistView::handleInput(InputEvent event, FocusArea focus) 
             if (event.key == KEY_DOWN) trackSelected = std::min(trackSelected + 1, trackCount - 1);
             if (event.key == KEY_UP) trackSelected = std::max(0, trackSelected - 1);
         }
-        // Handle Enter key on button (simplified: Enter activates Remove Song)
-        if (event.key == 10 && trackCount > 0 && trackSelected >= 0) return MainAreaAction::REMOVE_TRACK_FROM_PLAYLIST;
+        // Button Activation
+        if (event.key == 10) { // Enter - Activate [Remove Song]
+            if (trackCount > 0 && trackSelected >= 0) return MainAreaAction::REMOVE_TRACK_FROM_PLAYLIST;
+        }
     }
 
     return MainAreaAction::NONE;
 }
 
-// Update return type to MainAreaAction
 MainAreaAction MainPlaylistView::handleMouse(int localY, int localX) {
      if (!playlistManager) return MainAreaAction::NONE;
 
     int width; getmaxyx(win, std::ignore, width); int listWidth = width / 2;
     int listStartY = 4;
-    int clickedIndex = localY - listStartY;
+    int clickedIndexOnPage = localY - listStartY; // Index relative to page start
 
-    // Check button clicks first
-    if (localY == createBtnY) { // Button row Y coordinate
+    // --- Check Header Pagination Buttons ---
+    if (localY == prevBtnY) {
+        if (localX >= prevBtnX && localX < prevBtnX + prevBtnW && playlistPage > 1) {
+            playlistPage--;
+            playlistSelected = (playlistPage - 1) * playlistsPerPage;
+            trackSelected = 0;
+            return MainAreaAction::NONE;
+        }
+        if (localX >= nextBtnX && localX < nextBtnX + nextBtnW && playlistPage < totalPlaylistPages) {
+            playlistPage++;
+            playlistSelected = (playlistPage - 1) * playlistsPerPage;
+            int playlistCount = playlistManager->getAllPlaylists().size();
+            playlistSelected = std::min(playlistSelected, playlistCount - 1);
+            trackSelected = 0;
+            return MainAreaAction::NONE;
+        }
+    }
+
+    // --- Check Bottom Buttons ---
+    if (localY == createBtnY) { // Bottom button row
         if (localX >= createBtnX && localX < createBtnX + createBtnW) return MainAreaAction::CREATE_PLAYLIST;
         if (localX >= deleteBtnX && localX < deleteBtnX + deleteBtnW) return MainAreaAction::DELETE_PLAYLIST;
         if (localX >= playBtnX && localX < playBtnX + playBtnW) return MainAreaAction::PLAY_PLAYLIST;
     }
-    if (localY == removeBtnY) { // Button row Y coordinate (can be same as createBtnY)
+    if (localY == removeBtnY) { // Bottom button row (can be same Y)
          if (localX >= removeBtnX && localX < removeBtnX + removeBtnW) return MainAreaAction::REMOVE_TRACK_FROM_PLAYLIST;
     }
 
 
-    // Handle list clicks if buttons weren't clicked
+    // --- Handle List Clicks ---
     std::vector<Playlist*> playlists = playlistManager->getAllPlaylists();
-    if (playlists.empty()) return MainAreaAction::NONE;
+    int totalPlaylists = playlists.size();
+    if (totalPlaylists == 0 && localY >= listStartY) return MainAreaAction::NONE; // No lists to click
 
     if (localX < listWidth) { // Clicked on playlist list
-        if (clickedIndex >= 0 && static_cast<size_t>(clickedIndex) < playlists.size()) {
-            if (playlistSelected != clickedIndex) {
-                 playlistSelected = clickedIndex;
+        int clickedIndexGlobal = (playlistPage - 1) * playlistsPerPage + clickedIndexOnPage;
+        if (clickedIndexOnPage >= 0 && clickedIndexGlobal < totalPlaylists) {
+            if (playlistSelected != clickedIndexGlobal) {
+                 playlistSelected = clickedIndexGlobal;
                  trackSelected = 0;
             }
         }
     } else { // Clicked on track list
-        if (playlistSelected >= 0 && static_cast<size_t>(playlistSelected) < playlists.size()) {
-            int trackCount = playlists[playlistSelected]->getTracks().size();
-            if (clickedIndex >= 0 && clickedIndex < trackCount) {
-                trackSelected = clickedIndex;
+        Playlist* currentPlaylist = getSelectedPlaylist();
+        if (currentPlaylist) {
+            int trackCount = currentPlaylist->getTracks().size();
+            if (clickedIndexOnPage >= 0 && clickedIndexOnPage < trackCount) {
+                trackSelected = clickedIndexOnPage;
             }
         }
     }
@@ -195,10 +282,9 @@ MainAreaAction MainPlaylistView::handleMouse(int localY, int localX) {
 
 
 MediaFile* MainPlaylistView::getSelectedTrack() const {
-     if (!playlistManager) return nullptr;
-    std::vector<Playlist*> playlists = playlistManager->getAllPlaylists();
-    if (playlistSelected < 0 || static_cast<size_t>(playlistSelected) >= playlists.size()) return nullptr;
-    Playlist* selectedPlaylist = playlists[playlistSelected];
+    Playlist* selectedPlaylist = getSelectedPlaylist(); // Use helper
+    if (!selectedPlaylist) return nullptr;
+
     const std::vector<MediaFile*>& tracks = selectedPlaylist->getTracks();
     if (trackSelected < 0 || static_cast<size_t>(trackSelected) >= tracks.size()) return nullptr;
     return tracks[trackSelected];
@@ -207,6 +293,7 @@ MediaFile* MainPlaylistView::getSelectedTrack() const {
 Playlist* MainPlaylistView::getSelectedPlaylist() const {
     if (!playlistManager) return nullptr;
     std::vector<Playlist*> playlists = playlistManager->getAllPlaylists();
+    // Use global index directly
     if (playlistSelected >= 0 && static_cast<size_t>(playlistSelected) < playlists.size()) {
         return playlists[playlistSelected];
     }
@@ -216,6 +303,7 @@ Playlist* MainPlaylistView::getSelectedPlaylist() const {
 int MainPlaylistView::getSelectedPlaylistIndex() const {
      if (!playlistManager) return -1;
      std::vector<Playlist*> playlists = playlistManager->getAllPlaylists();
+     // Use global index directly
      if (playlistSelected >= 0 && static_cast<size_t>(playlistSelected) < playlists.size()) {
         return playlistSelected;
      }

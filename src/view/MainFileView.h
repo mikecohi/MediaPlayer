@@ -22,4 +22,8 @@ private:
     //Store button locations for mouse clicks
     int editButtonY, editButtonX, editButtonW;
     int addButtonY, addButtonX, addButtonW;
+    int prevBtnY, prevBtnX, prevBtnW;
+    int nextBtnY, nextBtnX, nextBtnW;
+
+    bool fileExplicitlySelected;
 };

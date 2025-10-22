@@ -2,15 +2,108 @@
     {
         "name": "Test Playlist 1",
         "tracks": [
-            "/home/quynhmai/mock/MediaPlayer/test_media/city-of-the-star.mp3"
+            "/home/quynhmai/mock/MediaPlayer/test_media/Thôi Em Đừng Đi.mp3",
+            "/home/quynhmai/mock/MediaPlayer/test_media/Querry.mp3"
         ]
     },
     {
-        "name": "Empty List",
+        "name": "mai1",
         "tracks": []
     },
     {
-        "name": "mai",
+        "name": "mai2",
+        "tracks": []
+    },
+    {
+        "name": "mai3",
+        "tracks": []
+    },
+    {
+        "name": "mai4",
+        "tracks": []
+    },
+    {
+        "name": "mai5",
+        "tracks": []
+    },
+    {
+        "name": "mai6",
+        "tracks": []
+    },
+    {
+        "name": "mai7",
+        "tracks": []
+    },
+    {
+        "name": "mai9",
+        "tracks": []
+    },
+    {
+        "name": "mai10",
+        "tracks": []
+    },
+    {
+        "name": "mai11",
+        "tracks": []
+    },
+    {
+        "name": "mai12",
+        "tracks": []
+    },
+    {
+        "name": "mai13",
+        "tracks": []
+    },
+    {
+        "name": "mai14",
+        "tracks": []
+    },
+    {
+        "name": "mai15",
+        "tracks": []
+    },
+    {
+        "name": "mai16",
+        "tracks": []
+    },
+    {
+        "name": "mai17",
+        "tracks": []
+    },
+    {
+        "name": "mai18",
+        "tracks": []
+    },
+    {
+        "name": "mai19",
+        "tracks": []
+    },
+    {
+        "name": "mai20",
+        "tracks": []
+    },
+    {
+        "name": "mai21",
+        "tracks": []
+    },
+    {
+        "name": "mai22",
+        "tracks": []
+    },
+    {
+        "name": "mai23",
+        "tracks": []
+    },
+    {
+        "name": "mai24",
+        "tracks": []
+    },
+    {
+        "name": "mai25",
+        "tracks": []
+    },
+    {
+        "name": "mai26",
         "tracks": []
     }
 ]

@@ -80,6 +80,92 @@ void MediaController::loadMediaFromPath(const std::string& path) {
     }
 }
 
+// --- Next/Previous ---
+MediaFile* MediaController::findAdjacentTrack(int offset) {
+    if (!mediaPlayer || !mediaManager) return nullptr;
+
+    MediaFile* current = mediaPlayer->getCurrentTrack();
+    if (!current) return nullptr; // Cannot determine next/prev if nothing is playing
+
+    // A simple, potentially inefficient way for now: Get all files
+    // A better way would involve knowing the current playlist or view context
+    // For now, assume we operate on the entire library page by page implicitly
+    int totalFiles = mediaManager->getTotalFileCount();
+    if (totalFiles <= 1) return nullptr; // Only one song
+
+    // Find the index of the current track (VERY INEFFICIENT for large libraries!)
+    int currentIndex = -1;
+    // We have to iterate through pages to find the index
+    int pageSize = 25; // Assume standard page size for now
+    int totalPages = mediaManager->getTotalPages(pageSize);
+    for (int p = 1; p <= totalPages; ++p) {
+        std::vector<MediaFile*> page = mediaManager->getPage(p, pageSize);
+        for(size_t i = 0; i < page.size(); ++i) {
+            if (page[i] == current) {
+                currentIndex = (p - 1) * pageSize + i;
+                goto found_index; // Exit nested loops
+            }
+        }
+    }
+
+found_index:
+    if (currentIndex == -1) return nullptr; // Current track not found? Should not happen
+
+    // Calculate the next/previous index with wrapping
+    int nextIndex = (currentIndex + offset + totalFiles) % totalFiles;
+
+    // Get the MediaFile* at the new index (again, inefficiently)
+    int targetPage = (nextIndex / pageSize) + 1;
+    int indexOnPage = nextIndex % pageSize;
+    std::vector<MediaFile*> targetPageData = mediaManager->getPage(targetPage, pageSize);
+
+    if (indexOnPage >= 0 && static_cast<size_t>(indexOnPage) < targetPageData.size()) {
+        return targetPageData[indexOnPage];
+    }
+
+    return nullptr; // Error finding the adjacent track
+}
+
+
+// --- Playback Control Implementations ---
+void MediaController::nextTrack() {
+    std::cout << "MediaController: nextTrack called." << std::endl;
+    MediaFile* next = findAdjacentTrack(1); // Get the next track (+1 offset)
+    if (next) {
+        playTrack(next); // Play it
+    } else {
+        std::cout << "MediaController: Could not find next track." << std::endl;
+        // Optional: Stop playback if at the end? mediaPlayer->stop();
+    }
+}
+
+void MediaController::previousTrack() {
+    std::cout << "MediaController: previousTrack called." << std::endl;
+    MediaFile* prev = findAdjacentTrack(-1); // Get the previous track (-1 offset)
+    if (prev) {
+        playTrack(prev); // Play it
+    } else {
+        std::cout << "MediaController: Could not find previous track." << std::endl;
+        // Optional: Stop playback or restart current? mediaPlayer->stop();
+    }
+}
+
+void MediaController::increaseVolume(int amount) {
+    std::cout << "MediaController: increaseVolume called." << std::endl;
+    if (mediaPlayer) {
+        int currentVol = mediaPlayer->getVolume();
+        setVolume(std::min(100, currentVol + amount)); // Use setVolume, clamp at 100
+    }
+}
+
+void MediaController::decreaseVolume(int amount) {
+    std::cout << "MediaController: decreaseVolume called." << std::endl;
+    if (mediaPlayer) {
+        int currentVol = mediaPlayer->getVolume();
+        setVolume(std::max(0, currentVol - amount)); // Use setVolume, clamp at 0
+    }
+}
+
 // --- Các hàm gọi từ S32K144 (Device Input) ---
 // (Các hàm này đã có skeleton, không cần sửa)
 void MediaController::onDevicePlayPause() {

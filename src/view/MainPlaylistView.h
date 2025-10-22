@@ -38,4 +38,13 @@ private:
     int deleteBtnY, deleteBtnX, deleteBtnW;
     int playBtnY, playBtnX, playBtnW;
     int removeBtnY, removeBtnX, removeBtnW;
+
+    // --- Pagination for Playlists ---
+    int playlistPage;
+    int totalPlaylistPages;
+    int playlistsPerPage;
+
+    // --- Button Coordinates ---
+    int prevBtnY, prevBtnX, prevBtnW;
+    int nextBtnY, nextBtnX, nextBtnW;
 };

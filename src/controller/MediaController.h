@@ -1,6 +1,8 @@
 #pragma once
 #include "model/MediaManager.h"
 #include "model/MediaPlayer.h"
+#include "model/MediaFile.h" // Include MediaFile for parameters/return types
+
 #include "utils/DeviceConnector.h"
 #include "utils/TagLibWrapper.h"
 
@@ -28,6 +30,12 @@ public:
     bool editMetadata(MediaFile* file, const std::string& key, const std::string& value);
     void loadMediaFromPath(const std::string& path);
 
+    // --- Playback Control Methods ---
+    void nextTrack();
+    void previousTrack();
+    void increaseVolume(int amount = 5); // Increase by a step
+    void decreaseVolume(int amount = 5); // Decrease by a step
+
     // --- Methods called from S32K144 (Device Input) ---
     void onDevicePlayPause();
     void onDeviceNext();
@@ -49,6 +57,7 @@ private:
     // Non-owning pointers to models and utilities
     MediaManager* mediaManager;
     MediaPlayer* mediaPlayer;
+    MediaFile* findAdjacentTrack(int offset);
     TagLibWrapper* tagUtil;
     DeviceConnector* deviceConnector;
 };
