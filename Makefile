@@ -6,8 +6,8 @@ CXX := g++
 
 # Compiler and Linker flags managed by pkg-config
 # Requires: libncurses-dev, libsdl2-dev, libsdl2-mixer-dev, libtag1-dev
-CXXFLAGS := -std=c++17 -Wall -g -I./src -I./src/external/ $(shell pkg-config --cflags ncurses sdl2 taglib)
-LDFLAGS := $(shell pkg-config --libs ncurses sdl2 taglib SDL2_mixer)
+CXXFLAGS := -std=c++17 -Wall -g -I./src -I./src/external/ $(shell pkg-config --cflags ncursesw sdl2 taglib)
+LDFLAGS := $(shell pkg-config --libs ncursesw sdl2 taglib SDL2_mixer)
 
 # Project directories
 SRC_DIR := src

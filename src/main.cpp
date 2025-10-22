@@ -1,8 +1,14 @@
 #include "app/App.h"
 #include <iostream>
-#include <fstream> // <-- Include this for file streams
+#include <fstream>
+#include <clocale>
 
 int main() {
+    // --- SET LOCALE FIRST ---
+    if (setlocale(LC_ALL, "") == NULL) {
+         std::cerr << "Warning: Could not set locale." << std::endl;
+    }
+    
     // --- REDIRECT OUTPUT TO FILE ---
     std::ofstream log_file("debug.log"); // Create/overwrite debug.log
     if (!log_file.is_open()) {
