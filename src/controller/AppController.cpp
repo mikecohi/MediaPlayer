@@ -48,6 +48,44 @@ bool AppController::init() {
     return true;
 }
 
+bool AppController::loadUSBLibrary() {
+    if (!usbUtils || !mediaManager) return false;
+
+    currentUSBPath = usbUtils->detectUSBMount();
+    if (currentUSBPath.empty()) {
+        std::cerr << "[AppController] ❌ No USB detected.\n";
+        return false;
+    }
+
+    std::cout << "[AppController] ✅ Loading media from: " << currentUSBPath << std::endl;
+    mediaManager->loadFromDirectory(currentUSBPath);
+    return true;
+}
+
+bool AppController::reloadUSBLibrary() {
+    std::cout << "[AppController] 🔄 Reloading USB library..." << std::endl;
+    return loadUSBLibrary(); // reuse logic
+}
+
+bool AppController::ejectUSB() {
+    if (!usbUtils) return false;
+
+    if (currentUSBPath.empty()) {
+        std::cerr << "[AppController] ⚠️ No USB currently mounted.\n";
+        return false;
+    }
+
+    bool ok = usbUtils->unmountUSB(currentUSBPath);
+    if (ok && mediaManager) {
+        mediaManager->clearLibrary(); // 🔹 clear current data
+        std::cout << "[AppController] 🧹 MediaManager cleared after eject.\n";
+    }
+    currentUSBPath.clear();
+    return ok;
+}
+
+
+
 // --- Getters ---
 MediaManager* AppController::getMediaManager() const { return mediaManager.get(); }
 PlaylistManager* AppController::getPlaylistManager() const { return playlistManager.get(); }
