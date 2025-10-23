@@ -1,6 +1,6 @@
 #pragma once
 #include <memory> 
-
+#include <string>
 class MediaManager;
 class PlaylistManager;
 class MediaPlayer;
@@ -25,8 +25,12 @@ public:
     MediaPlayer* getMediaPlayer() const;
     MediaController* getMediaController() const;
     PlaylistController* getPlaylistController() const;
+    bool loadUSBLibrary();
+    bool reloadUSBLibrary();
+    bool ejectUSB();
 
 private:
+    std::string currentUSBPath;
     // --- Ownership Utils ---
     std::unique_ptr<TagLibWrapper> tagLibWrapper;
     std::unique_ptr<SDLWrapper> sdlWrapper;
