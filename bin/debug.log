@@ -1,0 +1,29 @@
+--- Application Started ---
+DeviceConnector: Skeleton created.
+DEBUG SDLWrapper: Initializing SDL Audio...
+DEBUG SDLWrapper: Initializing SDL_mixer...
+DEBUG SDLWrapper: Initialization successful.
+DEBUG SDLWrapper: Setting track finished callback.
+MediaController: Initialized.
+App: Loading initial media from ./test_media ...
+MediaManager: Loading from directory: /home/quynhmai/mock/MediaPlayer/test_media
+Error: Path is not a valid directory: /home/quynhmai/mock/MediaPlayer/test_media
+MediaManager: Found 0 media files.
+MediaManager: Load complete. Library size: 0
+DEBUG App::init: MediaManager reports 0 files AFTER loading from /home/quynhmai/mock/MediaPlayer/test_media.
+App: Media loading complete.
+App: Loading playlists from /home/quynhmai/mock/MediaPlayer/playlist/playlists.json...
+PlaylistManager Info: Playlist file not found or could not be opened: /home/quynhmai/mock/MediaPlayer/playlist/playlists.json. Starting fresh.
+[USBUtils] ❌ No USB device found.
+[AppController] ❌ No USB detected.
+MediaController: increaseVolume called.
+MediaController: setVolume called with 100
+MediaController: decreaseVolume called.
+MediaController: setVolume called with 95
+MediaController: nextTrack called.
+MediaController: Could not find next track.
+MediaController: previousTrack called.
+MediaController: Could not find previous track.
+MediaController: pauseOrResume called.
+MediaController: pauseOrResume called.
+--- Application Shutting Down ---

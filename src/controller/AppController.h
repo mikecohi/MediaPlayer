@@ -1,6 +1,6 @@
 #pragma once
 #include <memory> 
-
+#include <string>
 class MediaManager;
 class PlaylistManager;
 class MediaPlayer;
