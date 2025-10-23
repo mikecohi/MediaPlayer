@@ -253,4 +253,7 @@ void UIManager::switchMainView(AppMode newMode) {
     }
 
     needsRedrawMain = true;
+
+
+    
 }
