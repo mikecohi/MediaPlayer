@@ -232,10 +232,28 @@ void UIManager::showAddToPlaylistPopup(MediaFile* fileToAdd) {
 void UIManager::switchMainView(AppMode newMode) {
     if (newMode == currentMode && mainAreaView != nullptr) return;
     currentMode = newMode;
-    if (newMode == AppMode::FILE_BROWSER || newMode == AppMode::USB_BROWSER) {
+
+    if (newMode == AppMode::FILE_BROWSER) {
         mainAreaView = std::make_unique<MainFileView>(ui, mainWin, appController->getMediaManager());
-    } else if (newMode == AppMode::PLAYLISTS) {
+    }
+    else if (newMode == AppMode::USB_BROWSER) {
+        // 🔹 NEW: load USB data
+        if (appController) {
+            if (!appController->loadUSBLibrary()) {
+                flash(); // notify user if failed
+            }
+        }
+        mainAreaView = std::make_unique<MainFileView>(ui, mainWin, appController->getMediaManager());
+    }
+    else if (newMode == AppMode::PLAYLISTS) {
         mainAreaView = std::make_unique<MainPlaylistView>(ui, mainWin, appController->getPlaylistManager());
-    } else { mainAreaView = nullptr; }
+    }
+    else {
+        mainAreaView = nullptr;
+    }
+
     needsRedrawMain = true;
+
+
+    
 }
