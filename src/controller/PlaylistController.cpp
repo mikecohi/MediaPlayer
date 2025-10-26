@@ -19,7 +19,7 @@ bool PlaylistController::createPlaylist(const std::string& name) {
     Playlist* p = playlistManager->createPlaylist(name);
     //return (p != nullptr);
     if (p) {
-        playlistManager->autoSave(); // <-- LƯU NGAY
+        playlistManager->autoSave(); 
         return true;
     }
     return false;
@@ -33,7 +33,7 @@ bool PlaylistController::deletePlaylist(const std::string& name) {
     //return playlistManager->deletePlaylist(name);
     bool success = playlistManager->deletePlaylist(name);
     if (success) {
-        playlistManager->autoSave(); // <-- LƯU NGAY
+        playlistManager->autoSave(); 
     }
     return success;
 }
@@ -45,16 +45,14 @@ bool PlaylistController::addTrackToPlaylist(MediaFile* file, Playlist* playlist)
         return false;
     }
     
-    // We delegate the logic to the Model (Playlist object)
     playlist->addTrack(file); 
     
-    // Here we could add logic to save the playlist to file
+    //add logic to save the playlist to file
     playlistManager->autoSave();
     
     return true;
 }
 
-// removeTrackFromPlaylist - PHẢI KHỚP VỚI FILE .h
 bool PlaylistController::removeTrackFromPlaylist(MediaFile* file, Playlist* playlist) {
     if (file == nullptr || playlist == nullptr) {
         std::cerr << "Controller Error: Cannot remove null track or from null playlist." << std::endl;
@@ -63,7 +61,7 @@ bool PlaylistController::removeTrackFromPlaylist(MediaFile* file, Playlist* play
     
     bool success = playlist->removeTrack(file);
     if (success) {
-        playlistManager->autoSave(); // <-- LƯU NGAY
+        playlistManager->autoSave();
     }
     return success;
 }
