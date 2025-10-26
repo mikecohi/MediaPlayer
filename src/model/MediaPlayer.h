@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <functional>
 #include "MediaFile.h"
 #include "utils/SDLWrapper.h"
 
@@ -24,11 +25,13 @@ public:
     
     //Callback function to be triggered by SDLWrapper when a track finishes.
     void onTrackFinished(); 
-
+    void setOnTrackFinishedCallback(std::function<void()> callback);
 private:
     SDLWrapper* sdlWrapper;     
     MediaFile* currentTrack;  
     int currentVolume;
 
     PlayerState currentState;
+    
+    std::function<void()> onTrackFinishedCallback_;
 };

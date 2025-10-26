@@ -32,7 +32,7 @@ TARGET := $(BIN_DIR)/mediaplayer
 # TARGETS
 # =======================================
 
-.PHONY: all test clean
+.PHONY: all test clean run
 
 # Default target: build the main application
 all: $(TARGET)
@@ -41,6 +41,13 @@ $(TARGET): $(OBJS) | $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 	@echo "✅ Build complete: $(TARGET)"
 
+# ---------------------------------------
+# Target to RUN the application
+# ---------------------------------------
+run: $(TARGET)
+	@echo "🚀 Running application..."
+	@./$(TARGET) 
+	
 # ---------------------------------------
 # Unit test target
 # ---------------------------------------

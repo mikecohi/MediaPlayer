@@ -3,8 +3,10 @@
 #include <algorithm> // For std::find_if and std::remove_if
 #include <iostream>
 #include <fstream>
-
+#include <filesystem>
 #include "nlohmann/json.hpp"
+
+namespace fs = std::filesystem;
 using json = nlohmann::json;
 
 //Constructor 
@@ -79,6 +81,16 @@ std::vector<Playlist*> PlaylistManager::getAllPlaylists() {
 
 // --- IMPLEMENT saveToFile ---
 void PlaylistManager::saveToFile(const std::string& filename) {
+    std::string path_to_save = filename;
+    if (path_to_save.empty()) {
+        path_to_save = savePath_; // Dùng đường dẫn đã lưu nếu không có path mới
+    }
+
+    if (path_to_save.empty()) {
+        std::cerr << "PlaylistManager Error: No save path specified. Cannot save." << std::endl;
+        return;
+    }
+    
     json jsonData = json::array(); // Root is a JSON array
 
     for (const auto& playlistPtr : playlists) {
@@ -99,19 +111,24 @@ void PlaylistManager::saveToFile(const std::string& filename) {
     }
 
     // Write JSON data to the file
-    std::ofstream outFile(filename);
-    if (outFile.is_open()) {
-        try {
-            // dump(4) for pretty printing with 4 spaces indent
+    try {
+        fs::path p(path_to_save);
+        if (p.has_parent_path()) {
+            fs::create_directories(p.parent_path()); // Tự tạo thư mục
+        }
+
+        std::ofstream outFile(path_to_save);
+        if (outFile.is_open()) {
             outFile << jsonData.dump(4);
             outFile.close();
-            std::cout << "PlaylistManager: Playlists saved to " << filename << std::endl;
-        } catch (const json::exception& e) {
-             std::cerr << "PlaylistManager Error: Failed to serialize JSON for saving: " << e.what() << std::endl;
-             outFile.close(); // Close file even on error
+            std::cout << "PlaylistManager: Playlists saved to " << path_to_save << std::endl;
+        } else {
+            std::cerr << "PlaylistManager Error: Could not open file for saving: " << path_to_save << std::endl;
         }
-    } else {
-        std::cerr << "PlaylistManager Error: Could not open file for saving: " << filename << std::endl;
+    } catch (fs::filesystem_error& e) {
+         std::cerr << "PlaylistManager Error: Filesystem error: " << e.what() << std::endl;
+    } catch (const json::exception& e) {
+         std::cerr << "PlaylistManager Error: Failed to serialize JSON: " << e.what() << std::endl;
     }
 }
 
@@ -121,7 +138,7 @@ void PlaylistManager::loadFromFile(const std::string& filename) {
         std::cerr << "PlaylistManager Error: Cannot load playlists - MediaManager is null." << std::endl;
         return;
     }
-
+    savePath_ = filename;
     std::ifstream inFile(filename);
     if (!inFile.is_open()) {
         // This is not necessarily an error, maybe the file doesn't exist yet
@@ -184,4 +201,9 @@ void PlaylistManager::loadFromFile(const std::string& filename) {
          std::cerr << "PlaylistManager Error: An unexpected error occurred during playlist loading: " << e.what() << std::endl;
          if(inFile.is_open()) inFile.close();
     }
+}
+
+void PlaylistManager::autoSave() {
+    std::cout << "[DEBUG] PlaylistManager: Auto-saving changes..." << std::endl;
+    saveToFile(); 
 }

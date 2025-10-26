@@ -44,7 +44,14 @@ bool AppController::init() {
         deviceConnector.get()
     );
     playlistController = std::make_unique<PlaylistController>(playlistManager.get());
-    
+
+    mediaPlayer->setOnTrackFinishedCallback([this]() {
+        // [this] capture con trỏ AppController
+        // Chúng ta cần kiểm tra mediaController tồn tại trước khi gọi
+        if (this->mediaController) {
+            this->mediaController->nextTrack();
+        }
+    });
     return true;
 }
 

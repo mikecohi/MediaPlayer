@@ -31,13 +31,13 @@ bool USBUtils::isDeviceRemovable(const std::string& deviceName) {
 
 std::string USBUtils::detectUSBMount() {
     if (isRunningOnWSL()) {
-        std::string mountPath = "/home/dung20210222/Documents/F/MediaPlayer";
+        std::string mountPath = "/home/quynhmai/mock/MediaPlayer/test_media/usb/";
 
         // Tạo thư mục mount nếu chưa có
-        if (!fs::exists(mountPath)) {
-            fs::create_directories(mountPath);
-            std::cout << "[USBUtils] Created WSL USB mount folder: " << mountPath << "\n";
-        }
+        // if (!fs::exists(mountPath)) {
+        //     fs::create_directories(mountPath);
+        //     std::cout << "[USBUtils] Created WSL USB mount folder: " << mountPath << "\n";
+        // }
 
         // 🔹 Dò ổ đĩa có thể là USB (E:, F:, G:, ...)
         std::vector<char> drives = {'d','e','f','g','h','i','j'};
