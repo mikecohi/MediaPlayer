@@ -1,6 +1,7 @@
 #pragma once
 #include "model/PlaylistManager.h"
 #include "model/MediaFile.h"
+#include "model/Playlist.h"
 
 /**
  * @class PlaylistController

@@ -15,8 +15,11 @@ private:
     // The manager owns all Playlist objects via smart pointers
     std::vector<std::unique_ptr<Playlist>> playlists;
     MediaManager* mediaManager;
+    std::string savePath_;
 public:
     explicit PlaylistManager(MediaManager* manager);
+    ~PlaylistManager();
+
     Playlist* createPlaylist(const std::string& name);
     Playlist* getPlaylistByName(const std::string& name);
     bool deletePlaylist(const std::string& name);
@@ -26,4 +29,5 @@ public:
     // Logic for saving/loading playlists to/from disk
     void saveToFile(const std::string& filename);
     void loadFromFile(const std::string& filename);
+    void autoSave();
 };

@@ -40,10 +40,10 @@ std::vector<std::string> FileUtils::getMediaFilesRecursive(const std::string& ro
         std::filesystem::path fsRootPath(rootPath);
         
         // Check if the path exists and is a directory
-        if (!std::filesystem::exists(fsRootPath) || !std::filesystem::is_directory(fsRootPath)) {
-            std::cerr << "Error: Path is not a valid directory: " << rootPath << std::endl;
-            return mediaFiles; // Return empty vector
-        }
+        // if (!std::filesystem::exists(fsRootPath) || !std::filesystem::is_directory(fsRootPath)) {
+        //     std::cerr << "Error: Path is not a valid directory: " << rootPath << std::endl;
+        //     return mediaFiles; // Return empty vector
+        // }
 
         // Use recursive_directory_iterator to scan all subdirectories
         for (const auto& entry : std::filesystem::recursive_directory_iterator(fsRootPath)) {

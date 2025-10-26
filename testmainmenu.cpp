@@ -1,3 +1,4 @@
+//g++ testmainmenu.cpp -o testmainmenu -std=c++17 -lncursesw -lSDL2 -lSDL2_mixer -ltag -lstdc++fs -lpthread
 #include <ncursesw/ncurses.h>
 #include <vector>
 #include <string>

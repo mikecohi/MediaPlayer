@@ -6,7 +6,6 @@ PlaylistController::PlaylistController(PlaylistManager* manager)
     : playlistManager(manager) 
 {
     if (this->playlistManager == nullptr) {
-        // This is a critical error, we should log it
         std::cerr << "CRITICAL: PlaylistController initialized with a null PlaylistManager!" << std::endl;
     }
 }
@@ -18,7 +17,12 @@ bool PlaylistController::createPlaylist(const std::string& name) {
         return false;
     }
     Playlist* p = playlistManager->createPlaylist(name);
-    return (p != nullptr);
+    //return (p != nullptr);
+    if (p) {
+        playlistManager->autoSave(); // <-- LƯU NGAY
+        return true;
+    }
+    return false;
 }
 
 // deletePlaylist
@@ -26,7 +30,12 @@ bool PlaylistController::deletePlaylist(const std::string& name) {
     if (name.empty()) {
         return false;
     }
-    return playlistManager->deletePlaylist(name);
+    //return playlistManager->deletePlaylist(name);
+    bool success = playlistManager->deletePlaylist(name);
+    if (success) {
+        playlistManager->autoSave(); // <-- LƯU NGAY
+    }
+    return success;
 }
 
 // addTrackToPlaylist 
@@ -40,7 +49,7 @@ bool PlaylistController::addTrackToPlaylist(MediaFile* file, Playlist* playlist)
     playlist->addTrack(file); 
     
     // Here we could add logic to save the playlist to file
-    // e.g., playlistManager->saveToFile("default.json");
+    playlistManager->autoSave();
     
     return true;
 }
@@ -52,7 +61,10 @@ bool PlaylistController::removeTrackFromPlaylist(MediaFile* file, Playlist* play
         return false;
     }
     
-    // We delegate the logic to the Model (Playlist object)
-    return playlist->removeTrack(file);
+    bool success = playlist->removeTrack(file);
+    if (success) {
+        playlistManager->autoSave(); // <-- LƯU NGAY
+    }
+    return success;
 }
 

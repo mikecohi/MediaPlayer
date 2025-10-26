@@ -9,11 +9,12 @@
 #include "model/PlaylistManager.h"
 
 const std::string PLAYLIST_FILENAME = "/home/quynhmai/mock/MediaPlayer/playlist/playlists.json";
+const std::string MEDIA_PATH = "/home/quynhmai/mock/MediaPlayer/test_media";
 
 App::App() {}
 App::~App() {
     if (appController && appController->getPlaylistManager()) {
-        std::cout << "App: Saving playlists to " << PLAYLIST_FILENAME << "..." << std::endl;
+        std::cout << "App: Saving playlists before exiting to " << PLAYLIST_FILENAME << "..." << std::endl;
         // Use the constant filename
         appController->getPlaylistManager()->saveToFile(PLAYLIST_FILENAME);
     }
@@ -41,18 +42,17 @@ bool App::init() {
     }
     
     // --- LOAD MEDIA ---
-    std::cout << "App: Loading initial media from ./test_media ..." << std::endl;
-    std::string mediaPath = "/home/quynhmai/mock/MediaPlayer/test_media";
-    appController->getMediaManager()->loadFromDirectory(mediaPath);
+    std::cout << "App: Loading initial media from " << MEDIA_PATH << " ..." << std::endl;
+    appController->getMediaManager()->loadFromDirectory(MEDIA_PATH);
 
     // --- LOGGING ---
     if (appController && appController->getMediaManager()) {
         int count = appController->getMediaManager()->getTotalFileCount();
         std::cout << "DEBUG App::init: MediaManager reports "
-                  << count << " files AFTER loading from " << mediaPath << "." << std::endl;
+                  << count << " files AFTER loading from " << MEDIA_PATH << "." << std::endl;
         // Optional: Log to file
-        // std::ofstream logfile("app_init.log", std::ios::app);
-        // logfile << "DEBUG App::init: MediaManager reports " << count << " files AFTER loading." << std::endl;
+        //std::ofstream logfile("app_init.log", std::ios::app);
+        //logfile << "DEBUG App::init: MediaManager reports " << count << " files AFTER loading." << std::endl;
     } else {
          std::cout << "DEBUG App::init: AppController or MediaManager is NULL after loading!" << std::endl;
     }
