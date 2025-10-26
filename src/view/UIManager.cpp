@@ -234,15 +234,24 @@ void UIManager::switchMainView(AppMode newMode) {
     currentMode = newMode;
 
     if (newMode == AppMode::FILE_BROWSER) {
+    std::string defaultPath = "/home/dung20210222/Documents/F/MediaPlayer/test_media"; // hoặc đường dẫn cấu hình mặc định
+    if (appController->getMediaManager()) {
+        appController->getMediaManager()->loadFromDirectory(defaultPath);
+        std::cout << "[UIManager] ✅ Reloaded local media library from " << defaultPath << "\n";
+    }
+
         mainAreaView = std::make_unique<MainFileView>(ui, mainWin, appController->getMediaManager());
     }
     else if (newMode == AppMode::USB_BROWSER) {
         // 🔹 NEW: load USB data
-        if (appController) {
-            if (!appController->loadUSBLibrary()) {
-                flash(); // notify user if failed
-            }
+         if (appController->loadUSBLibrary()) {
+            std::cout << "[UIManager] ✅ USB media loaded.\n";
+        } else {
+            std::cerr << "[UIManager] ⚠️ Could not load USB library.\n";
+            flash(); // Optional: UI feedback
         }
+
+
         mainAreaView = std::make_unique<MainFileView>(ui, mainWin, appController->getMediaManager());
     }
     else if (newMode == AppMode::PLAYLISTS) {

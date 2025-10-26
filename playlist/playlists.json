@@ -1,10 +1,7 @@
 [
     {
         "name": "Test Playlist 1",
-        "tracks": [
-            "/home/quynhmai/mock/MediaPlayer/test_media/Thôi Em Đừng Đi.mp3",
-            "/home/quynhmai/mock/MediaPlayer/test_media/Querry.mp3"
-        ]
+        "tracks": []
     },
     {
         "name": "mai1",

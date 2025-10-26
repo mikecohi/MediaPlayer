@@ -8,7 +8,7 @@
 #include "model/MediaManager.h" 
 #include "model/PlaylistManager.h"
 
-const std::string PLAYLIST_FILENAME = "/home/quynhmai/mock/MediaPlayer/playlist/playlists.json";
+const std::string PLAYLIST_FILENAME = "//home/dung20210222/Documents/F/MediaPlayer/playlist/playlists.json";
 
 App::App() {}
 App::~App() {
@@ -42,7 +42,7 @@ bool App::init() {
     
     // --- LOAD MEDIA ---
     std::cout << "App: Loading initial media from ./test_media ..." << std::endl;
-    std::string mediaPath = "/home/quynhmai/mock/MediaPlayer/test_media";
+    std::string mediaPath = "/home/dung20210222/Documents/F/MediaPlayer/test_media";
     appController->getMediaManager()->loadFromDirectory(mediaPath);
 
     // --- LOGGING ---

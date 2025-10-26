@@ -49,40 +49,58 @@ bool AppController::init() {
 }
 
 bool AppController::loadUSBLibrary() {
-    if (!usbUtils || !mediaManager) return false;
+    if (!usbUtils) return false;
 
-    currentUSBPath = usbUtils->detectUSBMount();
-    if (currentUSBPath.empty()) {
+    std::string usbPath = USBUtils::detectUSBPath();
+    if (usbPath.empty()) {
         std::cerr << "[AppController] ❌ No USB detected.\n";
         return false;
     }
 
-    std::cout << "[AppController] ✅ Loading media from: " << currentUSBPath << std::endl;
-    mediaManager->loadFromDirectory(currentUSBPath);
-    return true;
+    currentUSBPath = usbPath;
+    std::cout << "[AppController] ✅ USB detected at: " << currentUSBPath << "\n";
+
+    if (mediaManager) {
+        mediaManager->loadFromDirectory(currentUSBPath);
+        std::cout << "[AppController] ✅ Media library loaded from USB.\n";
+        return true;
+    }
+
+    return false;
 }
 
 bool AppController::reloadUSBLibrary() {
-    std::cout << "[AppController] 🔄 Reloading USB library..." << std::endl;
-    return loadUSBLibrary(); // reuse logic
+    if (!usbUtils) return false;
+
+    std::cout << "[AppController] 🔁 Reloading USB media library...\n";
+    // Trường hợp trong WSL hoặc Linux thực
+    if (!currentUSBPath.empty() && USBUtils::isMounted(currentUSBPath)) {
+        if (mediaManager) {
+            mediaManager->loadFromDirectory(currentUSBPath);
+            std::cout << "[AppController] ✅ USB library reloaded successfully.\n";
+            return true;
+        }
+    } else {
+        std::cerr << "[AppController] ⚠️ USB is not mounted. Trying to detect again...\n";
+        return loadUSBLibrary();
+    }
+    return false;
 }
 
 bool AppController::ejectUSB() {
-    if (!usbUtils) return false;
+    if (currentUSBPath.empty() || !usbUtils) return false;
 
-    if (currentUSBPath.empty()) {
-        std::cerr << "[AppController] ⚠️ No USB currently mounted.\n";
-        return false;
+    bool ok = USBUtils::ejectUSB(currentUSBPath);
+    if (ok) {
+        std::cout << "[AppController] ✅ USB safely ejected.\n";
+        currentUSBPath.clear();
+        mediaManager->clearLibrary();
+    } else {
+        std::cerr << "[AppController] ❌ Failed to eject USB.\n";
     }
-
-    bool ok = usbUtils->unmountUSB(currentUSBPath);
-    if (ok && mediaManager) {
-        mediaManager->clearLibrary(); // 🔹 clear current data
-        std::cout << "[AppController] 🧹 MediaManager cleared after eject.\n";
-    }
-    currentUSBPath.clear();
     return ok;
 }
+
 
 
 
