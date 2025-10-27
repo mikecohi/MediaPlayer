@@ -1,11 +1,7 @@
 [
     {
         "name": "Test Playlist 1",
-        "tracks": [
-            "/home/quynhmai/mock/MediaPlayer/test_media/Background 1.mp3",
-            "/home/quynhmai/mock/MediaPlayer/test_media/Chìm Sâu.mp3",
-            "/home/quynhmai/mock/MediaPlayer/test_media/Badtrip.mp3"
-        ]
+        "tracks": []
     },
     {
         "name": "mai1",

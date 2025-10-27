@@ -16,6 +16,7 @@
 #include "model/Playlist.h"
 #include "model/PlaylistManager.h"
 #include "view/PopupView.h"
+#include "view/MainUSBView.h"
 
 UIManager::UIManager(NcursesUI* ui, AppController* controller)
     : ui(ui), appController(controller), isRunning(false),
@@ -234,23 +235,12 @@ void UIManager::switchMainView(AppMode newMode) {
     currentMode = newMode;
 
     if (newMode == AppMode::FILE_BROWSER) {
-    std::string defaultPath = "/home/dung20210222/Documents/F/MediaPlayer/test_media"; // hoặc đường dẫn cấu hình mặc định
-    if (appController->getMediaManager()) {
-        appController->getMediaManager()->loadFromDirectory(defaultPath);
-        std::cout << "[UIManager] ✅ Reloaded local media library from " << defaultPath << "\n";
-    }
-
         mainAreaView = std::make_unique<MainFileView>(ui, mainWin, appController->getMediaManager());
     }
     else if (newMode == AppMode::USB_BROWSER) {
-        // 🔹 NEW: load USB data
-        if (appController) {
-            if (!appController->loadUSBLibrary()) {
-                flash(); // notify user if failed
-            }
-        }
-        mainAreaView = std::make_unique<MainFileView>(ui, mainWin, appController->getMediaManager());
-    }
+    mainAreaView = std::make_unique<MainUSBView>(ui, mainWin, appController);
+}
+
     else if (newMode == AppMode::PLAYLISTS) {
         mainAreaView = std::make_unique<MainPlaylistView>(ui, mainWin, appController->getPlaylistManager());
     }

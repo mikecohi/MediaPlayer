@@ -66,11 +66,9 @@ std::string USBUtils::detectWSLUSBDrive() {
     return result + ":"; // Ví dụ "F:"
 }
 
-
-
 std::string USBUtils::detectUSBMount() {
     if (isRunningOnWSL()) {
-        std::string mountPath = "/home/quynhmai/mock/MediaPlayer/usb";
+        std::string mountPath = "/home/dung20210222/F/MediaPlayer/usb";
 
         // Tạo thư mục mount nếu chưa có
         // if (!fs::exists(mountPath)) {
@@ -139,7 +137,7 @@ bool USBUtils::unmountUSB(const std::string& mountPath) {
         return false;
     }
 
-    std::string cmd = "sudo umount " + mountPath + " >/dev/null 2>&1";
+    std::string cmd = "sudo -n umount " + mountPath + " >/dev/null 2>&1";
     int ret = std::system(cmd.c_str());
     if (ret == 0) {
         std::cout << "[USBUtils] ✅ USB safely unmounted: " << mountPath << "\n";
@@ -149,3 +147,4 @@ bool USBUtils::unmountUSB(const std::string& mountPath) {
         return false;
     }
 }
+
