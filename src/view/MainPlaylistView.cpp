@@ -309,3 +309,12 @@ int MainPlaylistView::getSelectedPlaylistIndex() const {
      }
      return -1;
 }
+
+int MainPlaylistView::getSelectedTrackIndex() const {
+    //return index if a playlist is selected
+    Playlist* pl = getSelectedPlaylist();
+    if (pl && trackSelected >= 0 && (size_t)trackSelected < pl->getTracks().size()) {
+        return trackSelected;
+    }
+    return 0; // return 0 (first song) if nothing selected
+}

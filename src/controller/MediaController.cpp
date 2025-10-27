@@ -1,6 +1,7 @@
 #include "controller/MediaController.h"
 #include "model/MediaFile.h" // Needed for file operations
 #include "model/Metadata.h"  // Needed for editing
+#include "model/Playlist.h" // Need for play in playlist
 #include <iostream> 
 
 MediaController::MediaController(MediaManager* manager, MediaPlayer* player, 
@@ -21,7 +22,7 @@ MediaController::MediaController(MediaManager* manager, MediaPlayer* player,
 void MediaController::playTrack(MediaFile* file) {
     std::cout << "MediaController: playTrack called for " << (file ? file->getFileName() : "nullptr") << std::endl;
     if (mediaPlayer && file) {
-        mediaPlayer->play(file);
+        mediaPlayer->play(file, nullptr);
         // Giai đoạn sau: sendSongInfoToDevice(file);
     } else {
         std::cerr << "MediaController: Cannot play track (null player or file)." << std::endl;
@@ -84,47 +85,109 @@ void MediaController::loadMediaFromPath(const std::string& path) {
 MediaFile* MediaController::findAdjacentTrack(int offset) {
     if (!mediaPlayer || !mediaManager) return nullptr;
 
-    MediaFile* current = mediaPlayer->getCurrentTrack();
-    if (!current) return nullptr; // Cannot determine next/prev if nothing is playing
+    MediaFile* currentTrack = mediaPlayer->getCurrentTrack();
+    if (!currentTrack) return nullptr; // Không có gì đang phát
 
-    // A simple, potentially inefficient way for now: Get all files
-    // A better way would involve knowing the current playlist or view context
-    // For now, assume we operate on the entire library page by page implicitly
-    int totalFiles = mediaManager->getTotalFileCount();
-    if (totalFiles <= 1) return nullptr; // Only one song
+    // --- LOGIC MỚI: ƯU TIÊN PLAYLIST ---
+    Playlist* activePlaylist = mediaPlayer->getActivePlaylist();
+    if (activePlaylist) {
+        // 1. Đang phát trong bối cảnh Playlist
+        std::cout << "[DEBUG] findAdjacentTrack: In Playlist context." << std::endl;
+        const auto& tracks = activePlaylist->getTracks();
+        if (tracks.empty()) return nullptr;
 
-    // Find the index of the current track (VERY INEFFICIENT for large libraries!)
-    int currentIndex = -1;
-    // We have to iterate through pages to find the index
-    int pageSize = 25; // Assume standard page size for now
-    int totalPages = mediaManager->getTotalPages(pageSize);
-    for (int p = 1; p <= totalPages; ++p) {
-        std::vector<MediaFile*> page = mediaManager->getPage(p, pageSize);
-        for(size_t i = 0; i < page.size(); ++i) {
-            if (page[i] == current) {
-                currentIndex = (p - 1) * pageSize + i;
-                goto found_index; // Exit nested loops
+        // Tìm index của bài hiện tại TRONG PLAYLIST
+        auto it = std::find(tracks.begin(), tracks.end(), currentTrack);
+        if (it == tracks.end()) {
+             std::cerr << "ERROR: Current track not found in active playlist!" << std::endl;
+             return nullptr; // Lỗi
+        }
+        
+        int currentIndex = std::distance(tracks.begin(), it);
+        int totalTracks = tracks.size();
+        
+        // Tính index mới (có wrap-around)
+        int nextIndex = (currentIndex + offset + totalTracks) % totalTracks;
+        
+        return tracks[nextIndex]; // Trả về bài mới
+        
+    } else {
+        // 2. Đang phát từ Thư viện chính (Logic cũ)
+        std::cout << "[DEBUG] findAdjacentTrack: In Library context (inefficient)." << std::endl;
+        int totalFiles = mediaManager->getTotalFileCount();
+        if (totalFiles <= 1) return nullptr;
+
+        // (Logic cũ không hiệu quả của bạn)
+        int currentIndex = -1;
+        int pageSize = 25; 
+        int totalPages = mediaManager->getTotalPages(pageSize);
+        for (int p = 1; p <= totalPages; ++p) {
+            std::vector<MediaFile*> page = mediaManager->getPage(p, pageSize);
+            for(size_t i = 0; i < page.size(); ++i) {
+                if (page[i] == currentTrack) {
+                    currentIndex = (p - 1) * pageSize + i;
+                    goto found_index_library;
+                }
             }
         }
+
+    found_index_library:
+        if (currentIndex == -1) return nullptr;
+        int nextIndex = (currentIndex + offset + totalFiles) % totalFiles;
+        int targetPage = (nextIndex / pageSize) + 1;
+        int indexOnPage = nextIndex % pageSize;
+        std::vector<MediaFile*> targetPageData = mediaManager->getPage(targetPage, pageSize);
+        if (indexOnPage >= 0 && (size_t)indexOnPage < targetPageData.size()) {
+            return targetPageData[indexOnPage];
+        }
     }
-
-found_index:
-    if (currentIndex == -1) return nullptr; // Current track not found? Should not happen
-
-    // Calculate the next/previous index with wrapping
-    int nextIndex = (currentIndex + offset + totalFiles) % totalFiles;
-
-    // Get the MediaFile* at the new index (again, inefficiently)
-    int targetPage = (nextIndex / pageSize) + 1;
-    int indexOnPage = nextIndex % pageSize;
-    std::vector<MediaFile*> targetPageData = mediaManager->getPage(targetPage, pageSize);
-
-    if (indexOnPage >= 0 && static_cast<size_t>(indexOnPage) < targetPageData.size()) {
-        return targetPageData[indexOnPage];
-    }
-
-    return nullptr; // Error finding the adjacent track
+    
+    return nullptr;
 }
+// MediaFile* MediaController::findAdjacentTrack(int offset) {
+//     if (!mediaPlayer || !mediaManager) return nullptr;
+
+//     MediaFile* current = mediaPlayer->getCurrentTrack();
+//     if (!current) return nullptr; // Cannot determine next/prev if nothing is playing
+
+//     // A simple, potentially inefficient way for now: Get all files
+//     // A better way would involve knowing the current playlist or view context
+//     // For now, assume we operate on the entire library page by page implicitly
+//     int totalFiles = mediaManager->getTotalFileCount();
+//     if (totalFiles <= 1) return nullptr; // Only one song
+
+//     // Find the index of the current track (VERY INEFFICIENT for large libraries!)
+//     int currentIndex = -1;
+//     // We have to iterate through pages to find the index
+//     int pageSize = 25; // Assume standard page size for now
+//     int totalPages = mediaManager->getTotalPages(pageSize);
+//     for (int p = 1; p <= totalPages; ++p) {
+//         std::vector<MediaFile*> page = mediaManager->getPage(p, pageSize);
+//         for(size_t i = 0; i < page.size(); ++i) {
+//             if (page[i] == current) {
+//                 currentIndex = (p - 1) * pageSize + i;
+//                 goto found_index; // Exit nested loops
+//             }
+//         }
+//     }
+
+// found_index:
+//     if (currentIndex == -1) return nullptr; // Current track not found? Should not happen
+
+//     // Calculate the next/previous index with wrapping
+//     int nextIndex = (currentIndex + offset + totalFiles) % totalFiles;
+
+//     // Get the MediaFile* at the new index (again, inefficiently)
+//     int targetPage = (nextIndex / pageSize) + 1;
+//     int indexOnPage = nextIndex % pageSize;
+//     std::vector<MediaFile*> targetPageData = mediaManager->getPage(targetPage, pageSize);
+
+//     if (indexOnPage >= 0 && static_cast<size_t>(indexOnPage) < targetPageData.size()) {
+//         return targetPageData[indexOnPage];
+//     }
+
+//     return nullptr; // Error finding the adjacent track
+// }
 
 
 // --- Playback Control Implementations ---
@@ -164,6 +227,31 @@ void MediaController::decreaseVolume(int amount) {
         int currentVol = mediaPlayer->getVolume();
         setVolume(std::max(0, currentVol - amount)); // Use setVolume, clamp at 0
     }
+}
+
+void MediaController::playPlaylist(Playlist* playlist, int startIndex) {
+    if (!mediaPlayer || !playlist) {
+        std::cerr << "MediaController: Cannot play playlist (null player or playlist)." << std::endl;
+        return;
+    }
+    
+    const auto& tracks = playlist->getTracks();
+    if (tracks.empty()) {
+        std::cerr << "MediaController: Playlist is empty." << std::endl;
+        return;
+    }
+
+    if (startIndex < 0 || (size_t)startIndex >= tracks.size()) {
+        startIndex = 0;
+    }
+
+    MediaFile* fileToPlay = tracks[startIndex];
+    
+    std::cout << "MediaController: playPlaylist called for '" << playlist->getName() 
+              << "', starting at track " << startIndex << std::endl;
+              
+    // call play, input playlist as context
+    mediaPlayer->play(fileToPlay, playlist); 
 }
 
 // --- Các hàm gọi từ S32K144 (Device Input) ---

@@ -4,14 +4,15 @@
 #include "MediaFile.h"
 #include "utils/SDLWrapper.h"
 
-enum class PlayerState { STOPPED, PLAYING, PAUSED };
+class Playlist;
 
+enum class PlayerState { STOPPED, PLAYING, PAUSED };
 
 class MediaPlayer {
 public:
     MediaPlayer(SDLWrapper* sdlWrapper);
 
-    void play(MediaFile* file);
+    void play(MediaFile* file, Playlist* context = nullptr);
     void pause(); // Toggles pause/resume
     void stop();
 
@@ -26,6 +27,8 @@ public:
     //Callback function to be triggered by SDLWrapper when a track finishes.
     void onTrackFinished(); 
     void setOnTrackFinishedCallback(std::function<void()> callback);
+
+    Playlist* getActivePlaylist() const;
 private:
     SDLWrapper* sdlWrapper;     
     MediaFile* currentTrack;  
@@ -35,4 +38,6 @@ private:
     
     std::function<void()> onTrackFinishedCallback_;
     bool isStoppingManually_;
+
+    Playlist* activePlaylist_;
 };

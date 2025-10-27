@@ -8,14 +8,16 @@
 #include "controller/AppController.h"
 #include "controller/MediaController.h"
 #include "controller/PlaylistController.h" // Needed for playlist actions
+
 #include "view/SidebarView.h"
-#include "view/BottomBarView.h"          // Needs BottomBarAction
+#include "view/BottomBarView.h"
 #include "view/MainFileView.h"
 #include "view/MainPlaylistView.h"
+#include "view/PopupView.h"
+
 #include "model/MediaFile.h"
 #include "model/Playlist.h"
 #include "model/PlaylistManager.h"
-#include "view/PopupView.h"
 
 UIManager::UIManager(NcursesUI* ui, AppController* controller)
     : ui(ui), appController(controller), isRunning(false),
@@ -183,14 +185,30 @@ void UIManager::handleInput(InputEvent event) {
 
      // --- HANDLE ACTIONS (Centralized) ---
 
-     // Handle Main Area Actions first
-     switch (mainAction) {
-         case MainAreaAction::CREATE_PLAYLIST: showCreatePlaylistPopup(); break;
-         case MainAreaAction::DELETE_PLAYLIST: { /* ... Delete logic ... */ Playlist* sp=nullptr; if(currentMode==AppMode::PLAYLISTS){MainPlaylistView* pv=dynamic_cast<MainPlaylistView*>(mainAreaView.get()); if(pv) sp=pv->getSelectedPlaylist();} if(sp&&appController&&appController->getPlaylistController()){bool d=appController->getPlaylistController()->deletePlaylist(sp->getName()); if(d)needsRedrawMain=true; else flash();} else flash();} break;
-         case MainAreaAction::REMOVE_TRACK_FROM_PLAYLIST: { /* ... Remove logic ... */ MediaFile* st=nullptr; Playlist* cp=nullptr; if(currentMode==AppMode::PLAYLISTS){MainPlaylistView* pv=dynamic_cast<MainPlaylistView*>(mainAreaView.get()); if(pv){st=pv->getSelectedTrack(); cp=pv->getSelectedPlaylist();}} if(st&&cp&&appController&&appController->getPlaylistController()){bool r=appController->getPlaylistController()->removeTrackFromPlaylist(st,cp); if(r)needsRedrawMain=true; else flash();} else flash();} break;
-         case MainAreaAction::ADD_TRACK_TO_PLAYLIST: { /* ... Add logic ... */ MediaFile* sf=nullptr; if(currentMode==AppMode::FILE_BROWSER||currentMode==AppMode::USB_BROWSER){MainFileView* fv=dynamic_cast<MainFileView*>(mainAreaView.get()); if(fv) sf=fv->getSelectedFile();} if(sf){showAddToPlaylistPopup(sf);} else flash();} break;
-         case MainAreaAction::EDIT_METADATA: { flash(); /* TODO */ } break;
-         case MainAreaAction::PLAY_PLAYLIST: { flash(); /* TODO */ } break;
+    // Handle Main Area Actions first
+    switch (mainAction) {
+        case MainAreaAction::CREATE_PLAYLIST: showCreatePlaylistPopup(); break;
+        case MainAreaAction::DELETE_PLAYLIST: { /* ... Delete logic ... */ Playlist* sp=nullptr; if(currentMode==AppMode::PLAYLISTS){MainPlaylistView* pv=dynamic_cast<MainPlaylistView*>(mainAreaView.get()); if(pv) sp=pv->getSelectedPlaylist();} if(sp&&appController&&appController->getPlaylistController()){bool d=appController->getPlaylistController()->deletePlaylist(sp->getName()); if(d)needsRedrawMain=true; else flash();} else flash();} break;
+        case MainAreaAction::REMOVE_TRACK_FROM_PLAYLIST: { /* ... Remove logic ... */ MediaFile* st=nullptr; Playlist* cp=nullptr; if(currentMode==AppMode::PLAYLISTS){MainPlaylistView* pv=dynamic_cast<MainPlaylistView*>(mainAreaView.get()); if(pv){st=pv->getSelectedTrack(); cp=pv->getSelectedPlaylist();}} if(st&&cp&&appController&&appController->getPlaylistController()){bool r=appController->getPlaylistController()->removeTrackFromPlaylist(st,cp); if(r)needsRedrawMain=true; else flash();} else flash();} break;
+        case MainAreaAction::ADD_TRACK_TO_PLAYLIST: { /* ... Add logic ... */ MediaFile* sf=nullptr; if(currentMode==AppMode::FILE_BROWSER||currentMode==AppMode::USB_BROWSER){MainFileView* fv=dynamic_cast<MainFileView*>(mainAreaView.get()); if(fv) sf=fv->getSelectedFile();} if(sf){showAddToPlaylistPopup(sf);} else flash();} break;
+        case MainAreaAction::EDIT_METADATA: { flash(); /* TODO */ } break;
+        case MainAreaAction::PLAY_PLAYLIST:
+            {
+                if (currentMode == AppMode::PLAYLISTS) {
+                    auto plView = dynamic_cast<MainPlaylistView*>(mainAreaView.get());
+                    if (plView && appController && appController->getMediaController()) {
+                        Playlist* selectedPlaylist = plView->getSelectedPlaylist();
+                        int trackIndex = plView->getSelectedTrackIndex(); // Lấy index bài hát
+                        
+                        if (selectedPlaylist) {
+                            appController->getMediaController()->playPlaylist(selectedPlaylist, trackIndex);
+                        } else {
+                            flash();
+                        }
+                    }
+                }
+                break;
+            }
          case MainAreaAction::NONE: default: break;
      }
 
@@ -251,9 +269,5 @@ void UIManager::switchMainView(AppMode newMode) {
     else {
         mainAreaView = nullptr;
     }
-
     needsRedrawMain = true;
-
-
-    
 }

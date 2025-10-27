@@ -6,6 +6,8 @@
 #include "utils/DeviceConnector.h"
 #include "utils/TagLibWrapper.h"
 
+class Playlist;
+
 /**
  * @class MediaController
  * @brief Handles user input related to media playback and library management.
@@ -23,7 +25,7 @@ public:
                     TagLibWrapper* tagUtil, DeviceConnector* device);
 
     // --- Methods called from View (User Input) ---
-    void playTrack(MediaFile* file);
+    void playTrack(MediaFile* file); //add remove playlist context
     void pauseOrResume();
     void stop();
     void setVolume(int volume);
@@ -42,6 +44,7 @@ public:
     void onDevicePrevious();
     void onDeviceVolumeChange(int adcValue); // Raw value from ADC
 
+    void playPlaylist(Playlist* playlist, int startIndex = 0);
 private:
     /**
      * @brief Sends current song info to the S32K144 board.
@@ -57,7 +60,7 @@ private:
     // Non-owning pointers to models and utilities
     MediaManager* mediaManager;
     MediaPlayer* mediaPlayer;
-    MediaFile* findAdjacentTrack(int offset);
+    MediaFile* findAdjacentTrack(int offset); 
     TagLibWrapper* tagUtil;
     DeviceConnector* deviceConnector;
 };

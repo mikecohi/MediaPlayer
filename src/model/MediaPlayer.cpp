@@ -7,7 +7,8 @@ MediaPlayer::MediaPlayer(SDLWrapper* sdlWrapper)
       currentState(PlayerState::STOPPED), 
       currentVolume(100), // Default volume
       onTrackFinishedCallback_(nullptr),
-      isStoppingManually_(false)
+      isStoppingManually_(false),
+      activePlaylist_(nullptr)
 {
     if (sdlWrapper == nullptr) {
         std::cerr << "CRITICAL: MediaPlayer started with null SDLWrapper!" << std::endl;
@@ -21,7 +22,7 @@ MediaPlayer::MediaPlayer(SDLWrapper* sdlWrapper)
     });
 }
 
-void MediaPlayer::play(MediaFile* file) {
+void MediaPlayer::play(MediaFile* file, Playlist* context) {
     if (file == nullptr) return;
 
     // (Giai đoạn 3 sẽ kiểm tra xem có phải file đang pause không)
@@ -30,9 +31,11 @@ void MediaPlayer::play(MediaFile* file) {
     if (sdlWrapper->playAudio(file->getFilePath())) {
         currentTrack = file;
         currentState = PlayerState::PLAYING;
+        activePlaylist_ = context;
     } else {
         currentTrack = nullptr;
         currentState = PlayerState::STOPPED;
+        activePlaylist_ = nullptr;
     }
     isStoppingManually_ = false;
 }
@@ -52,6 +55,7 @@ void MediaPlayer::stop() {
     sdlWrapper->stopAudio();
     currentState = PlayerState::STOPPED;
     currentTrack = nullptr;
+    activePlaylist_ = nullptr;
     isStoppingManually_ = false;
 }
 
@@ -120,4 +124,8 @@ void MediaPlayer::onTrackFinished() {
 
 void MediaPlayer::setOnTrackFinishedCallback(std::function<void()> callback) {
     onTrackFinishedCallback_ = callback;
+}
+
+Playlist* MediaPlayer::getActivePlaylist() const {
+    return activePlaylist_;
 }

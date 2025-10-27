@@ -26,6 +26,7 @@ public:
      * @return The index, or -1 if invalid.
      */
     int getSelectedPlaylistIndex() const; 
+    int getSelectedTrackIndex() const;
 private:
     NcursesUI* ui;
     WINDOW* win;
