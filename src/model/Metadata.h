@@ -9,6 +9,7 @@
  */
 class Metadata {
 public:
+    Metadata();
     virtual ~Metadata() = default; // Virtual destructor for base class
 
     // Common fields for all media types
@@ -17,19 +18,11 @@ public:
     long fileSizeInBytes = 0;
 
     // Use a map to support "add new keys" requirement
-    std::map<std::string, std::string> customFields;
-
-    /**
-     * @brief Edits or adds a metadata field.
-     * @param key The metadata key (e.g., "artist", "year").
-     * @param value The new value for the key.
-     */
-    virtual void editField(const std::string& key, const std::string& value);
-
-    /**
-     * @brief Retrieves a metadata field.
-     * @param key The key to retrieve.
-     * @return The value as a string.
-     */
+    //std::map<std::string, std::string> customFields;
+    //virtual void editField(const std::string& key, const std::string& value);
+    
     virtual std::string getField(const std::string& key) const;
+    void setField(const std::string& key, const std::string& value);
+protected:
+    std::map<std::string, std::string> fields;
 };

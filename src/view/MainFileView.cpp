@@ -194,7 +194,13 @@ MainAreaAction MainFileView::handleInput(InputEvent event, FocusArea focus) {
             // Activate "Add to Playlist" if a file is explicitly selected
             if(fileExplicitlySelected && getSelectedFile() != nullptr) {
                 return MainAreaAction::ADD_TRACK_TO_PLAYLIST;
-            } else {
+            } else if (event.key == 'e' || event.key == 'E') {
+                // Thêm phím 'e' (Edit) để kích hoạt
+                if(fileExplicitlySelected && getSelectedFile() != nullptr) {
+                return MainAreaAction::EDIT_METADATA;
+                }
+            }
+            else {
                  flash(); // Indicate nothing selected
             }
         }

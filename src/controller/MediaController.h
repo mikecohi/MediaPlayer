@@ -7,6 +7,7 @@
 #include "utils/TagLibWrapper.h"
 
 class Playlist;
+class Metadata;
 
 /**
  * @class MediaController
@@ -29,8 +30,9 @@ public:
     void pauseOrResume();
     void stop();
     void setVolume(int volume);
-    bool editMetadata(MediaFile* file, const std::string& key, const std::string& value);
+    //bool editMetadata(MediaFile* file, const std::string& key, const std::string& value);
     void loadMediaFromPath(const std::string& path);
+    bool saveMetadataChanges(MediaFile* file);
 
     // --- Playback Control Methods ---
     void nextTrack();

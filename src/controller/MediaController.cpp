@@ -50,29 +50,26 @@ void MediaController::setVolume(int volume) {
     }
 }
 
-bool MediaController::editMetadata(MediaFile* file, const std::string& key, const std::string& value) {
-    std::cout << "MediaController: editMetadata called for " << key << "=" << value << std::endl;
-    if (!file || !file->getMetadata() || !tagUtil) {
-        std::cerr << "MediaController: Cannot edit metadata (null pointers)." << std::endl;
-        return false;
-    }
+// bool MediaController::editMetadata(MediaFile* file, const std::string& key, const std::string& value) {
+//     std::cout << "MediaController: editMetadata called for " << key << "=" << value << std::endl;
+//     if (!file || !file->getMetadata() || !tagUtil) {
+//         std::cerr << "MediaController: Cannot edit metadata (null pointers)." << std::endl;
+//         return false;
+//     }
     
-    // 1. Update the metadata object in memory
-    Metadata* meta = file->getMetadata();
-    meta->editField(key, value); 
+//     // 1. Update the metadata object in memory
+//     Metadata* meta = file->getMetadata();
+//     meta->setField(key, value); 
     
-    // 2. Write the changes back to the actual file on disk
-    // (Lưu ý: Cần kiểm tra TagLibWrapper::writeTags được triển khai chưa)
-    // bool success = tagUtil->writeTags(file->getFilePath(), *meta);
-    // if (!success) {
-    //    std::cerr << "MediaController: Failed to write tags to file: " << file->getFilePath() << std::endl;
-    //    // Optionally revert the change in memory?
-    // }
-    // return success;
     
-    std::cout << "MediaController: writeTags not fully implemented yet." << std::endl;
-    return true; // Tạm thời trả về true
-}
+//     // 2. Write the changes back to the actual file on disk
+//     // (Lưu ý: Cần kiểm tra TagLibWrapper::writeTags được triển khai chưa)
+//     bool success = tagUtil->writeTags(file->getFilePath(), meta);
+//     if (!success) {
+//        std::cerr << "MediaController: Failed to write tags to file: " << file->getFilePath() << std::endl;
+//     }
+//     return success;  
+// }
 
 void MediaController::loadMediaFromPath(const std::string& path) {
     std::cout << "MediaController: loadMediaFromPath called for " << path << std::endl;
@@ -195,10 +192,13 @@ void MediaController::nextTrack() {
     std::cout << "MediaController: nextTrack called." << std::endl;
     MediaFile* next = findAdjacentTrack(1); // Get the next track (+1 offset)
     if (next) {
-        playTrack(next); // Play it
+        if (mediaPlayer->getActivePlaylist()) {
+            mediaPlayer->play(next, mediaPlayer->getActivePlaylist());
+        } else {
+            mediaPlayer->play(next, nullptr);
+        }
     } else {
         std::cout << "MediaController: Could not find next track." << std::endl;
-        // Optional: Stop playback if at the end? mediaPlayer->stop();
     }
 }
 
@@ -206,7 +206,11 @@ void MediaController::previousTrack() {
     std::cout << "MediaController: previousTrack called." << std::endl;
     MediaFile* prev = findAdjacentTrack(-1); // Get the previous track (-1 offset)
     if (prev) {
-        playTrack(prev); // Play it
+        if (mediaPlayer->getActivePlaylist()) {
+            mediaPlayer->play(prev, mediaPlayer->getActivePlaylist());
+        } else {
+            mediaPlayer->play(prev, nullptr);
+        }    
     } else {
         std::cout << "MediaController: Could not find previous track." << std::endl;
         // Optional: Stop playback or restart current? mediaPlayer->stop();
@@ -252,6 +256,24 @@ void MediaController::playPlaylist(Playlist* playlist, int startIndex) {
               
     // call play, input playlist as context
     mediaPlayer->play(fileToPlay, playlist); 
+}
+
+bool MediaController::saveMetadataChanges(MediaFile* file) {
+    if (!file || !file->getMetadata() || !tagUtil) {
+        std::cerr << "MediaController: Cannot save metadata (null pointers)." << std::endl;
+        return false;
+    }
+    
+    // Đối tượng Metadata trong RAM đã được PopupView cập nhật
+    Metadata* meta = file->getMetadata();
+    
+    // Chỉ cần gọi TagLibWrapper để ghi ra đĩa
+    bool success = tagUtil->writeTags(file->getFilePath(), meta);
+    
+    if (!success) {
+       std::cerr << "MediaController: Failed to write tags to file: " << file->getFilePath() << std::endl;
+    }
+    return success;
 }
 
 // --- Các hàm gọi từ S32K144 (Device Input) ---
