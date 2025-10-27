@@ -244,14 +244,11 @@ void UIManager::switchMainView(AppMode newMode) {
     }
     else if (newMode == AppMode::USB_BROWSER) {
         // 🔹 NEW: load USB data
-         if (appController->loadUSBLibrary()) {
-            std::cout << "[UIManager] ✅ USB media loaded.\n";
-        } else {
-            std::cerr << "[UIManager] ⚠️ Could not load USB library.\n";
-            flash(); // Optional: UI feedback
+        if (appController) {
+            if (!appController->loadUSBLibrary()) {
+                flash(); // notify user if failed
+            }
         }
-
-
         mainAreaView = std::make_unique<MainFileView>(ui, mainWin, appController->getMediaManager());
     }
     else if (newMode == AppMode::PLAYLISTS) {

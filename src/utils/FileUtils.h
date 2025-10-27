@@ -1,7 +1,8 @@
 #pragma once
 #include <string>
 #include <vector>
-
+#include <filesystem>
+namespace fs = std::filesystem;
 /**
  * @namespace FileUtils
  * @brief Provides utility functions for file system operations.
@@ -20,4 +21,5 @@ namespace FileUtils {
      * @return true if it's a recognized media file, false otherwise.
      */
     bool isMediaFile(const std::string& filePath);
+    fs::path getProjectRootPath();
 } // namespace FileUtils

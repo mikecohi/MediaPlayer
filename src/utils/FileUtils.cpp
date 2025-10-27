@@ -5,6 +5,9 @@
 #include <string>
 #include <algorithm> // For std::transform
 
+#include <unistd.h>     // readlink
+#include <linux/limits.h> // PATH_MAX
+
 namespace {
     // Helper function to convert a string to lowercase
     std::string toLower(std::string s) {
@@ -62,4 +65,23 @@ std::vector<std::string> FileUtils::getMediaFilesRecursive(const std::string& ro
     }
 
     return mediaFiles;
+}
+
+fs::path FileUtils::getProjectRootPath() {
+    char result[PATH_MAX];
+    ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+
+    if (count == -1) {
+        // Lỗi: không đọc được /proc/self/exe, trả về CWD
+        std::cerr << "Warning: Could not read /proc/self/exe. Using current directory." << std::endl;
+        return fs::current_path();
+    }
+
+    result[count] = '\0'; // Đảm bảo null-terminated
+    fs::path exePath(result);
+    
+    // exePath là: /path/to/MediaPlayer/bin/mediaplayer
+    // .parent_path() là: /path/to/MediaPlayer/bin
+    // .parent_path().parent_path() là: /path/to/MediaPlayer
+    return exePath.parent_path().parent_path(); 
 }

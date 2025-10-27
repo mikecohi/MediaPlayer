@@ -26,7 +26,7 @@ int main() {
     // Now, any std::cout or std::cerr will go to debug.log
 
     std::cout << "--- Application Started ---" << std::endl; // This goes to the file
-
+{
     App myApp;
 
     // 1. Initialize
@@ -47,7 +47,7 @@ int main() {
 
     // 3. Shutdown (App destructor handles ncurses cleanup)
     std::cout << "--- Application Shutting Down ---" << std::endl; // Goes to file
-
+}
     // Restore original buffers before program truly exits
     std::cout.rdbuf(cout_buf);
     std::cerr.rdbuf(cerr_buf);

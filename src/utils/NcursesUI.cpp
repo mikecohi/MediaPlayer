@@ -18,7 +18,7 @@ bool NcursesUI::initScreen() {
     keypad(stdscr, TRUE);
     curs_set(0);
 
-    timeout(250); // Wait 100ms for input, then return ERR if none
+    timeout(100); // Wait 100ms for input, then return ERR if none
 
     if (has_colors()) {
         start_color();

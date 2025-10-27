@@ -6,7 +6,6 @@ PlaylistController::PlaylistController(PlaylistManager* manager)
     : playlistManager(manager) 
 {
     if (this->playlistManager == nullptr) {
-        // This is a critical error, we should log it
         std::cerr << "CRITICAL: PlaylistController initialized with a null PlaylistManager!" << std::endl;
     }
 }
@@ -18,7 +17,12 @@ bool PlaylistController::createPlaylist(const std::string& name) {
         return false;
     }
     Playlist* p = playlistManager->createPlaylist(name);
-    return (p != nullptr);
+    //return (p != nullptr);
+    if (p) {
+        playlistManager->autoSave(); 
+        return true;
+    }
+    return false;
 }
 
 // deletePlaylist
@@ -26,7 +30,12 @@ bool PlaylistController::deletePlaylist(const std::string& name) {
     if (name.empty()) {
         return false;
     }
-    return playlistManager->deletePlaylist(name);
+    //return playlistManager->deletePlaylist(name);
+    bool success = playlistManager->deletePlaylist(name);
+    if (success) {
+        playlistManager->autoSave(); 
+    }
+    return success;
 }
 
 // addTrackToPlaylist 
@@ -36,23 +45,24 @@ bool PlaylistController::addTrackToPlaylist(MediaFile* file, Playlist* playlist)
         return false;
     }
     
-    // We delegate the logic to the Model (Playlist object)
     playlist->addTrack(file); 
     
-    // Here we could add logic to save the playlist to file
-    // e.g., playlistManager->saveToFile("default.json");
+    //add logic to save the playlist to file
+    playlistManager->autoSave();
     
     return true;
 }
 
-// removeTrackFromPlaylist - PHẢI KHỚP VỚI FILE .h
 bool PlaylistController::removeTrackFromPlaylist(MediaFile* file, Playlist* playlist) {
     if (file == nullptr || playlist == nullptr) {
         std::cerr << "Controller Error: Cannot remove null track or from null playlist." << std::endl;
         return false;
     }
     
-    // We delegate the logic to the Model (Playlist object)
-    return playlist->removeTrack(file);
+    bool success = playlist->removeTrack(file);
+    if (success) {
+        playlistManager->autoSave();
+    }
+    return success;
 }
 
