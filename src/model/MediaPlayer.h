@@ -34,4 +34,5 @@ private:
     PlayerState currentState;
     
     std::function<void()> onTrackFinishedCallback_;
+    bool isStoppingManually_;
 };

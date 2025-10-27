@@ -5,7 +5,9 @@ MediaPlayer::MediaPlayer(SDLWrapper* sdlWrapper)
     : sdlWrapper(sdlWrapper), 
       currentTrack(nullptr), 
       currentState(PlayerState::STOPPED), 
-      currentVolume(100) // Default volume
+      currentVolume(100), // Default volume
+      onTrackFinishedCallback_(nullptr),
+      isStoppingManually_(false)
 {
     if (sdlWrapper == nullptr) {
         std::cerr << "CRITICAL: MediaPlayer started with null SDLWrapper!" << std::endl;
@@ -23,7 +25,8 @@ void MediaPlayer::play(MediaFile* file) {
     if (file == nullptr) return;
 
     // (Giai đoạn 3 sẽ kiểm tra xem có phải file đang pause không)
-    
+    isStoppingManually_ = true;
+
     if (sdlWrapper->playAudio(file->getFilePath())) {
         currentTrack = file;
         currentState = PlayerState::PLAYING;
@@ -31,6 +34,7 @@ void MediaPlayer::play(MediaFile* file) {
         currentTrack = nullptr;
         currentState = PlayerState::STOPPED;
     }
+    isStoppingManually_ = false;
 }
 
 void MediaPlayer::pause() {
@@ -44,9 +48,11 @@ void MediaPlayer::pause() {
 }
 
 void MediaPlayer::stop() {
+    isStoppingManually_ = true;
     sdlWrapper->stopAudio();
     currentState = PlayerState::STOPPED;
     currentTrack = nullptr;
+    isStoppingManually_ = false;
 }
 
 void MediaPlayer::setVolume(int volume) {
@@ -92,8 +98,14 @@ void MediaPlayer::onTrackFinished() {
     std::cout << "MediaPlayer: Track finished." << std::endl;
     // currentState = PlayerState::STOPPED;
     // currentTrack = nullptr;
+    if (isStoppingManually_) {
+        std::cout << "MediaPlayer: Manual stop detected, ignoring auto-next." << std::endl;
+        return;
+    }
+
     MediaFile* finishedTrack = currentTrack;
     currentState = PlayerState::STOPPED;
+
     //Auto-next 
     if (onTrackFinishedCallback_) {
         onTrackFinishedCallback_(); // <-- (call MediaController::nextTrack)

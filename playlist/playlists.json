@@ -2,35 +2,13 @@
     {
         "name": "Test Playlist 1",
         "tracks": [
-            "/home/quynhmai/mock/MediaPlayer/test_media/Background 1.mp3"
+            "/home/quynhmai/mock/MediaPlayer/test_media/Background 1.mp3",
+            "/home/quynhmai/mock/MediaPlayer/test_media/Chìm Sâu.mp3",
+            "/home/quynhmai/mock/MediaPlayer/test_media/Badtrip.mp3"
         ]
     },
     {
         "name": "mai1",
-        "tracks": []
-    },
-    {
-        "name": "mai2",
-        "tracks": []
-    },
-    {
-        "name": "mai3",
-        "tracks": []
-    },
-    {
-        "name": "mai4",
-        "tracks": []
-    },
-    {
-        "name": "mai5",
-        "tracks": []
-    },
-    {
-        "name": "mai6",
-        "tracks": []
-    },
-    {
-        "name": "mai7",
         "tracks": []
     },
     {
@@ -54,51 +32,7 @@
         "tracks": []
     },
     {
-        "name": "mai14",
-        "tracks": []
-    },
-    {
-        "name": "mai15",
-        "tracks": []
-    },
-    {
         "name": "mai16",
-        "tracks": []
-    },
-    {
-        "name": "mai17",
-        "tracks": []
-    },
-    {
-        "name": "mai18",
-        "tracks": []
-    },
-    {
-        "name": "mai19",
-        "tracks": []
-    },
-    {
-        "name": "mai20",
-        "tracks": []
-    },
-    {
-        "name": "mai21",
-        "tracks": []
-    },
-    {
-        "name": "mai22",
-        "tracks": []
-    },
-    {
-        "name": "mai23",
-        "tracks": []
-    },
-    {
-        "name": "mai24",
-        "tracks": []
-    },
-    {
-        "name": "mai25",
         "tracks": []
     }
 ]

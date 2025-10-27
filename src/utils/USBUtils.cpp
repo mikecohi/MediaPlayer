@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <vector>
+#include <algorithm>
 
 namespace fs = std::filesystem;
 
@@ -29,50 +30,73 @@ bool USBUtils::isDeviceRemovable(const std::string& deviceName) {
     return (flag == 1);
 }
 
+std::string USBUtils::detectWSLUSBDrive() {
+    const char* cmd =
+    "/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe "
+    "-Command \"(Get-Volume | Where-Object {\\$_.DriveType -eq 'Removable'} | Select -ExpandProperty DriveLetter)\"";
+
+
+    FILE* pipe = popen(cmd, "r");
+    if (!pipe) {
+        std::cerr << "[USBUtils] ❌ Cannot open PowerShell pipe\n";
+        return "";
+    }
+
+    char buffer[128];
+    std::string result;
+
+    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+        result += buffer;
+    }
+    pclose(pipe);
+
+    // Xóa BOM UTF-8 nếu có (0xEF,0xBB,0xBF)
+    if (!result.empty() && (unsigned char)result[0] == 0xEF) {
+        result.erase(0, 3);
+    }
+
+    // Xóa whitespace thừa: \n \r \t space
+    result.erase(std::remove_if(result.begin(), result.end(), ::isspace), result.end());
+
+    if (result.empty()) {
+        std::cerr << "[USBUtils] ⚠️ PowerShell returned no drive letter\n";
+        return "";
+    }
+
+    return result + ":"; // Ví dụ "F:"
+}
+
+
+
 std::string USBUtils::detectUSBMount() {
     if (isRunningOnWSL()) {
-        std::string mountPath = "/home/quynhmai/mock/MediaPlayer/test_media/usb/";
+        std::string mountPath = "/home/quynhmai/mock/MediaPlayer/usb";
 
         // Tạo thư mục mount nếu chưa có
         // if (!fs::exists(mountPath)) {
+        //     std::cout<<"in"<<std::endl;
         //     fs::create_directories(mountPath);
         //     std::cout << "[USBUtils] Created WSL USB mount folder: " << mountPath << "\n";
         // }
-
-        // 🔹 Dò ổ đĩa có thể là USB (E:, F:, G:, ...)
-        std::vector<char> drives = {'d','e','f','g','h','i','j'};
-        std::string detectedDrive;
-
-        for (char letter : drives) {
-            std::string mountProbe = "/mnt/";
-            mountProbe.push_back(letter);
-            if (!fs::exists(mountProbe)) continue;
-
-            // 🔹 Kiểm tra nếu có dấu hiệu là USB (cờ removable trong /sys/block/sdX)
-            // Trong WSL, ta map drive letter sang sdX nếu có thể
-            std::string deviceName = "sd" + std::string(1, letter); // e.g. /sys/block/sde
-            if (isDeviceRemovable(deviceName)) {
-                detectedDrive = std::string(1, std::toupper(letter)) + ":";
-                std::cout << "[USBUtils] ✅ Removable device detected: " << detectedDrive
-                          << " (" << mountProbe << ")\n";
-                break;
-            }
-        }
-
+        // std::cout<<"next1"<<std::endl;
+        // ✅ Dò đúng removable USB drive bằng PowerShell (không nhầm với HDD/SSD khác)
+        std::string detectedDrive = detectWSLUSBDrive();
         if (detectedDrive.empty()) {
             std::cerr << "[USBUtils] ⚠️ No removable USB drive detected in WSL.\n";
             return "";
         }
+
+        std::cout << "[USBUtils] ✅ USB drive detected: " << detectedDrive << "\n";
 
         // Mount vào thư mục usb/
         if (!mountWSLDrive(detectedDrive, mountPath)) {
             std::cerr << "[USBUtils] ❌ Failed to mount " << detectedDrive << "\n";
             return "";
         }
-
-        std::cout << "[USBUtils] ✅ USB mounted successfully at: " << mountPath << "\n";
+std::cout << "[USBUtils] ✅ USB mounted successfully at: " << mountPath << "\n";
         return mountPath;
     }
+
 
     // --- Linux thật ---
     const char* username = getenv("USER");
@@ -125,4 +149,3 @@ bool USBUtils::unmountUSB(const std::string& mountPath) {
         return false;
     }
 }
-
