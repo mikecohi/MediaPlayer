@@ -15,11 +15,11 @@ const std::string MEDIA_PATH = "test_media";
 
 App::App() {}
 App::~App() {
-    if (appController && appController->getPlaylistManager()) {
-        fs::path rootPath = FileUtils::getProjectRootPath();
-        fs::path playlistPath = rootPath / PLAYLIST_FILENAME;
-        appController->getPlaylistManager()->saveToFile(playlistPath.string());
-    }
+    // if (appController && appController->getPlaylistManager()) {
+    //     fs::path rootPath = FileUtils::getProjectRootPath();
+    //     fs::path playlistPath = rootPath / PLAYLIST_FILENAME;
+    //     appController->getPlaylistManager()->saveToFile(playlistPath.string());
+    // }
     std::cout << "App: Cleanup complete." << std::endl;
     // unique_ptrs handle cleanup of uiManager, appController, ui
 }

@@ -99,26 +99,35 @@ void MainUSBView::draw(FocusArea focus) {
     mvwprintw(win, editBtnY, editBtnX, "%s", editLabel.c_str());
 
     mvwhline(win, 3, listWidth + 1, ACS_HLINE, detailWidth - 2);
+    mvwhline(win, height - 4, listWidth + 1, ACS_HLINE, detailWidth - 2); // Bottom border
     mvwvline(win, 4, listWidth, ACS_VLINE, height - 7);
     mvwvline(win, 4, width - 2, ACS_VLINE, height - 7);
 
-    // --- Metadata content ---
+        mvwaddch(win, 3, listWidth, ACS_ULCORNER);
+    mvwaddch(win, 3, width - 2, ACS_URCORNER);
+    mvwaddch(win, height - 4, listWidth, ACS_LLCORNER);
+    mvwaddch(win, height - 4, width - 2, ACS_LRCORNER);
+
+ // Metadata content - ONLY if explicitly selected
     if (fileExplicitlySelected) {
-        MediaFile* sf = getSelectedFile();
-        if (sf && sf->getMetadata()) {
-            mvwprintw(win, 5, listWidth + 2, "Title: %s", sf->getMetadata()->title.c_str());
-            mvwprintw(win, 6, listWidth + 2, "Artist: %s", sf->getMetadata()->getField("artist").c_str());
+        MediaFile* selectedFile = getSelectedFile();
+        if (selectedFile && selectedFile->getMetadata()) {
+             mvwprintw(win, 4, listWidth + 2, "Title: %.*s", detailWidth-4, selectedFile->getMetadata()->title.c_str());
+             // Draw other fields...
+             mvwprintw(win, 5, listWidth + 2, "Artist: %.*s", detailWidth-4, selectedFile->getMetadata()->getField("artist").c_str());
+             mvwprintw(win, 6, listWidth + 2, "Album: %.*s", detailWidth-4, selectedFile->getMetadata()->getField("album").c_str());
+
         } else {
-            mvwprintw(win, 5, listWidth + 2, "(No metadata found)");
+             mvwprintw(win, 4, listWidth + 2, "(No metadata found)");
         }
     } else {
-        mvwprintw(win, 5, listWidth + 2, "(Select a file to view details)");
+         mvwprintw(win, 4, listWidth + 2, "(Select a file to view details)"); // Initial message
     }
 
     // --- Buttons: Add to Playlist + Reload + Eject ---
     std::string addLabel = "[Add to Playlist]";
     addBtnW = addLabel.length();
-    addBtnY = height - 5;
+    addBtnY = height - 3;
     addBtnX = listWidth + (detailWidth - addBtnW) / 2;
         // Highlight button if detail panel has focus
     if (focus == FocusArea::MAIN_DETAIL) wattron(win, A_REVERSE | A_BOLD);

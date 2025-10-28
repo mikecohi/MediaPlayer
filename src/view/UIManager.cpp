@@ -147,14 +147,24 @@ void UIManager::handleInput(InputEvent event) {
      else if (event.type == InputEvent::KEYBOARD) {
         if (event.key == 9) { // Tab key
             // ... (Tab focus logic) ...
-             if (currentFocus == FocusArea::SIDEBAR) currentFocus = FocusArea::MAIN_LIST; else if (currentFocus == FocusArea::MAIN_LIST) currentFocus = FocusArea::MAIN_DETAIL; else if (currentFocus == FocusArea::MAIN_DETAIL) currentFocus = FocusArea::BOTTOM_BAR; else if (currentFocus == FocusArea::BOTTOM_BAR) currentFocus = FocusArea::SIDEBAR;
+             if (currentFocus == FocusArea::SIDEBAR) currentFocus = FocusArea::MAIN_LIST; 
+             else if (currentFocus == FocusArea::MAIN_LIST) currentFocus = FocusArea::MAIN_DETAIL; 
+             else if (currentFocus == FocusArea::MAIN_DETAIL) currentFocus = FocusArea::BOTTOM_BAR; 
+             else if (currentFocus == FocusArea::BOTTOM_BAR) currentFocus = FocusArea::SIDEBAR;
             needsRedrawSidebar = true; needsRedrawMain = true;
             return;
         }
 
         switch (currentFocus) {
             case FocusArea::SIDEBAR:
-                if (sidebarView) { /* ... Sidebar key handling ... */ AppMode oldM=currentMode; AppMode newM=sidebarView->handleInput(event); if(newM != oldM) switchMainView(newM); if(sidebarView->shouldExit()) isRunning=false; needsRedrawSidebar=true; }
+                if (sidebarView) 
+                { /* ... Sidebar key handling ... */ 
+                    AppMode oldM=currentMode; 
+                    AppMode newM=sidebarView->handleInput(event); 
+                    if(newM != oldM) switchMainView(newM); 
+                    if(sidebarView->shouldExit()) isRunning=false; 
+                    needsRedrawSidebar=true; 
+                }
                 break;
 
             case FocusArea::MAIN_LIST:
@@ -163,7 +173,28 @@ void UIManager::handleInput(InputEvent event) {
                      needsRedrawMain = true;
                  }
                  // Special handling for Enter key to play
-                 if (event.key == 10) { /* ... Play track logic ... */ MediaFile* sf=nullptr; if(currentMode==AppMode::FILE_BROWSER||currentMode==AppMode::USB_BROWSER){MainFileView* fv=dynamic_cast<MainFileView*>(mainAreaView.get()); if(fv) sf=fv->getSelectedFile();} else if(currentMode==AppMode::PLAYLISTS){MainPlaylistView* pv=dynamic_cast<MainPlaylistView*>(mainAreaView.get()); if(pv) sf=pv->getSelectedTrack();} if(sf&&appController&&appController->getMediaController()){appController->getMediaController()->playTrack(sf);} else{if(ui)flash();}}
+                 if (event.key == 10) 
+                 { 
+                    /* ... Play track logic ... */ 
+                    MediaFile* sf=nullptr; 
+                    if(currentMode==AppMode::FILE_BROWSER||currentMode==AppMode::USB_BROWSER)
+                    {
+                        MainFileView* fv=dynamic_cast<MainFileView*>(mainAreaView.get());
+                         if(fv) 
+                            sf=fv->getSelectedFile();
+                        }
+                          else if(currentMode==AppMode::PLAYLISTS)
+                          {
+                            MainPlaylistView* pv=dynamic_cast<MainPlaylistView*>(mainAreaView.get());
+                            if(pv) sf=pv->getSelectedTrack();
+                            } 
+                            if(sf&&appController&&appController->getMediaController())
+                             {
+                                appController->getMediaController()->playTrack(sf);
+                            } 
+                            else
+                            {if(ui)flash();}
+                }
                  break;
 
             case FocusArea::MAIN_DETAIL:
