@@ -5,6 +5,10 @@
 #include <algorithm>
 #include <tuple>
 #include <iostream> // For debug if needed
+#include <filesystem>
+#include <iomanip>
+
+namespace fs = std::filesystem;
 
 MainFileView::MainFileView(NcursesUI* ui, WINDOW* win, MediaManager* manager)
     : ui(ui), win(win), mediaManager(manager),
@@ -83,6 +87,56 @@ void MainFileView::draw(FocusArea focus) {
          // mvwprintw(win, 5, listWidth + 2, "Artist: %.*s", width-listWidth-4, selectedFile->getMetadata()->getField("artist").c_str());
          // mvwprintw(win, 6, listWidth + 2, "Album: %.*s", width-listWidth-4, selectedFile->getMetadata()->getField("album").c_str());
 
+    // Metadata content area border
+    mvwhline(win, 3, listWidth + 1, ACS_HLINE, detailWidth - 2); // Top border
+    mvwhline(win, height - 4, listWidth + 1, ACS_HLINE, detailWidth - 2); // Bottom border
+    mvwvline(win, 4, listWidth, ACS_VLINE, height - 7); // Left border (relative to mainWin)
+    mvwvline(win, 4, width - 2, ACS_VLINE, height - 7); // Right border
+    // Corner pieces
+    mvwaddch(win, 3, listWidth, ACS_ULCORNER);
+    mvwaddch(win, 3, width - 2, ACS_URCORNER);
+    mvwaddch(win, height - 4, listWidth, ACS_LLCORNER);
+    mvwaddch(win, height - 4, width - 2, ACS_LRCORNER);
+
+
+    // Metadata content - ONLY if explicitly selected
+    if (fileExplicitlySelected) {
+        MediaFile* selectedFile = getSelectedFile();
+        if (selectedFile && selectedFile->getMetadata()) {
+            Metadata* meta = selectedFile->getMetadata();
+            int y = 4;
+           // Title
+            mvwprintw(win, y++, listWidth + 2, "Title: %.*s", detailWidth-4, meta->title.c_str());
+            // Artist
+            mvwprintw(win, y++, listWidth + 2, "Artist: %.*s", detailWidth-4, meta->getField("artist").c_str()); 
+            // Album
+            mvwprintw(win, y++, listWidth + 2, "Album: %.*s", detailWidth-4, meta->getField("album").c_str());
+            
+            int duration = meta->durationInSeconds;
+            char timeStr[12];
+            sprintf(timeStr, "%02d:%02d", duration / 60, duration % 60);
+            mvwprintw(win, y++, listWidth + 2, "Length: %s", timeStr);
+
+            // 2. Bitrate
+            std::string bitrate = meta->getField("bitrate");
+            if (bitrate.empty() || bitrate == "0") bitrate = "?";
+            mvwprintw(win, y++, listWidth + 2, "Bitrate: %s kbps", bitrate.c_str());
+
+            // 3. Size
+            double sizeMB = (double)meta->fileSizeInBytes / (1024.0 * 1024.0);
+            char sizeStr[15];
+            sprintf(sizeStr, "%.2f MB", sizeMB);
+            mvwprintw(win, y++, listWidth + 2, "Size: %s", sizeStr);
+
+            // 4. Item Type (File Extension)
+            std::string ext = fs::path(selectedFile->getFilePath()).extension().string();
+            mvwprintw(win, y++, listWidth + 2, "Type: %s", ext.c_str());
+            
+            // 5. Genre
+            mvwprintw(win, y++, listWidth + 2, "Genre: %.*s", detailWidth-4, meta->getField("genre").c_str());
+        } else {
+             mvwprintw(win, 4, listWidth + 2, "(No metadata found)");
+        }
     } else {
          mvwprintw(win, 4, listWidth + 2, "Title: N/A");
          if (fileSelected >= 0 && fileSelected < totalFilesDebug) {

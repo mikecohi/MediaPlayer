@@ -1,0 +1,19 @@
+--- Application Started ---
+DeviceConnector: Skeleton created.
+DEBUG SDLWrapper: Initializing SDL Audio...
+DEBUG SDLWrapper: Initializing SDL_mixer...
+DEBUG SDLWrapper: Initialization successful.
+DEBUG SDLWrapper: Setting track finished callback.
+MediaController: Initialized.
+App: Loading initial media from /home/quynhmai/mock/MediaPlayer/test_media ...
+MediaManager: Loading from directory: /home/quynhmai/mock/MediaPlayer/test_media
+MediaManager: Found 42 media files.
+MediaManager: Load complete. Library size: 42
+DEBUG App::init: MediaManager reports 42 files AFTER loading from /home/quynhmai/mock/MediaPlayer/test_media.
+App: Media loading complete.
+App: Loading playlists from /home/quynhmai/mock/MediaPlayer/playlist/playlists.json...
+PlaylistManager: Playlists loaded successfully from /home/quynhmai/mock/MediaPlayer/playlist/playlists.json
+MediaController: playTrack called for videoplayback.mp4
+DEBUG SDLWrapper: playAudio requested for: /home/quynhmai/mock/MediaPlayer/test_media/videoplayback.mp4
+DEBUG SDLWrapper: Loading music with Mix_LoadMUS...
+ERROR SDLWrapper: Failed to load music: '/home/quynhmai/mock/MediaPlayer/test_media/videoplayback.mp4' - ModPlug_Load failed
