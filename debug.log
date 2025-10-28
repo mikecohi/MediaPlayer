@@ -5,48 +5,25 @@ DEBUG SDLWrapper: Initializing SDL_mixer...
 DEBUG SDLWrapper: Initialization successful.
 DEBUG SDLWrapper: Setting track finished callback.
 MediaController: Initialized.
-App: Loading initial media from /home/quynhmai/mock/MediaPlayer/test_media ...
-MediaManager: Loading from directory: /home/quynhmai/mock/MediaPlayer/test_media
-MediaManager: Found 42 media files.
-MediaManager: Load complete. Library size: 42
-DEBUG App::init: MediaManager reports 42 files AFTER loading from /home/quynhmai/mock/MediaPlayer/test_media.
+App: Loading initial media from /home/dung20210222/Documents/F/MediaPlayer/test_media ...
+MediaManager: Loading from directory: /home/dung20210222/Documents/F/MediaPlayer/test_media
+MediaManager: Found 13 media files.
+MediaManager: Load complete. Library size: 13
+DEBUG App::init: MediaManager reports 13 files AFTER loading from /home/dung20210222/Documents/F/MediaPlayer/test_media.
 App: Media loading complete.
-App: Loading playlists from /home/quynhmai/mock/MediaPlayer/playlist/playlists.json...
-PlaylistManager: Playlists loaded successfully from /home/quynhmai/mock/MediaPlayer/playlist/playlists.json
-MediaController: playTrack called for Querry.mp3
-DEBUG SDLWrapper: playAudio requested for: /home/quynhmai/mock/MediaPlayer/test_media/Querry.mp3
+App: Loading playlists from /home/dung20210222/Documents/F/MediaPlayer/playlist/playlists.json...
+PlaylistManager: Playlists loaded successfully from /home/dung20210222/Documents/F/MediaPlayer/playlist/playlists.json
+MediaController: playTrack called for FaSHioN.mp3
+DEBUG SDLWrapper: playAudio requested for: /home/dung20210222/Documents/F/MediaPlayer/test_media/media/KPOP/FaSHioN.mp3
 DEBUG SDLWrapper: Loading music with Mix_LoadMUS...
 DEBUG SDLWrapper: Music loaded successfully.
 DEBUG SDLWrapper: Calling Mix_PlayMusic...
 DEBUG SDLWrapper: Mix_PlayMusic call succeeded. Playback started.
-MediaController: playTrack called for Background 1.mp3
-DEBUG SDLWrapper: playAudio requested for: /home/quynhmai/mock/MediaPlayer/test_media/Background 1.mp3
-DEBUG SDLWrapper: Halting music.
 DEBUG SDLWrapper: musicFinishedCallback() triggered.
 MediaPlayer: Track finished.
 MediaController: nextTrack called.
-MediaController: playTrack called for Âm Thầm Bên Em.mp3
-DEBUG SDLWrapper: playAudio requested for: /home/quynhmai/mock/MediaPlayer/test_media/Âm Thầm Bên Em.mp3
-DEBUG SDLWrapper: Freeing current music resource.
-DEBUG SDLWrapper: Loading music with Mix_LoadMUS...
-DEBUG SDLWrapper: Music loaded successfully.
-DEBUG SDLWrapper: Calling Mix_PlayMusic...
-DEBUG SDLWrapper: Mix_PlayMusic call succeeded. Playback started.
-MediaPlayer: Auto-next successfully started a new track.
-DEBUG SDLWrapper: Freeing current music resource.
-DEBUG SDLWrapper: Loading music with Mix_LoadMUS...
-DEBUG SDLWrapper: Music loaded successfully.
-DEBUG SDLWrapper: Calling Mix_PlayMusic...
-DEBUG SDLWrapper: Mix_PlayMusic call succeeded. Playback started.
-MediaController: pauseOrResume called.
-DEBUG SDLWrapper: Pausing music.
-MediaController: pauseOrResume called.
-DEBUG SDLWrapper: Resuming music.
-DEBUG SDLWrapper: musicFinishedCallback() triggered.
-MediaPlayer: Track finished.
-MediaController: nextTrack called.
-MediaController: playTrack called for Ngọn gió đêm qua, ánh trăng đêm nay _ 昨夜风今宵月.mp3
-DEBUG SDLWrapper: playAudio requested for: /home/quynhmai/mock/MediaPlayer/test_media/Ngọn gió đêm qua, ánh trăng đêm nay _ 昨夜风今宵月.mp3
+MediaController: playTrack called for Crazy Form.mp3
+DEBUG SDLWrapper: playAudio requested for: /home/dung20210222/Documents/F/MediaPlayer/test_media/media/KPOP/Crazy Form.mp3
 DEBUG SDLWrapper: Freeing current music resource.
 DEBUG SDLWrapper: Loading music with Mix_LoadMUS...
 DEBUG SDLWrapper: Music loaded successfully.
@@ -56,8 +33,8 @@ MediaPlayer: Auto-next successfully started a new track.
 DEBUG SDLWrapper: musicFinishedCallback() triggered.
 MediaPlayer: Track finished.
 MediaController: nextTrack called.
-MediaController: playTrack called for CHẠY NGAY ĐI.mp3
-DEBUG SDLWrapper: playAudio requested for: /home/quynhmai/mock/MediaPlayer/test_media/CHẠY NGAY ĐI.mp3
+MediaController: playTrack called for Jopping.mp3
+DEBUG SDLWrapper: playAudio requested for: /home/dung20210222/Documents/F/MediaPlayer/test_media/media/KPOP/Jopping.mp3
 DEBUG SDLWrapper: Freeing current music resource.
 DEBUG SDLWrapper: Loading music with Mix_LoadMUS...
 DEBUG SDLWrapper: Music loaded successfully.
@@ -65,7 +42,7 @@ DEBUG SDLWrapper: Calling Mix_PlayMusic...
 DEBUG SDLWrapper: Mix_PlayMusic call succeeded. Playback started.
 MediaPlayer: Auto-next successfully started a new track.
 --- Application Shutting Down ---
-PlaylistManager: Playlists saved to /home/quynhmai/mock/MediaPlayer/playlist/playlists.json
+PlaylistManager: Playlists saved to /home/dung20210222/Documents/F/MediaPlayer/playlist/playlists.json
 App: Cleanup complete.
 DEBUG SDLWrapper: Closing...
 DEBUG SDLWrapper: Halting music.

@@ -18,6 +18,8 @@
 #include "model/MediaFile.h"
 #include "model/Playlist.h"
 #include "model/PlaylistManager.h"
+#include "view/PopupView.h"
+#include "view/MainUSBView.h"
 
 UIManager::UIManager(NcursesUI* ui, AppController* controller)
     : ui(ui), appController(controller), isRunning(false),
@@ -280,14 +282,9 @@ void UIManager::switchMainView(AppMode newMode) {
         mainAreaView = std::make_unique<MainFileView>(ui, mainWin, appController->getMediaManager());
     }
     else if (newMode == AppMode::USB_BROWSER) {
-        // 🔹 NEW: load USB data
-        if (appController) {
-            if (!appController->loadUSBLibrary()) {
-                flash(); // notify user if failed
-            }
-        }
-        mainAreaView = std::make_unique<MainFileView>(ui, mainWin, appController->getMediaManager());
-    }
+    mainAreaView = std::make_unique<MainUSBView>(ui, mainWin, appController);
+}
+
     else if (newMode == AppMode::PLAYLISTS) {
         mainAreaView = std::make_unique<MainPlaylistView>(ui, mainWin, appController->getPlaylistManager());
     }

@@ -14,11 +14,6 @@ public:
     std::string detectWSLUSBDrive();
     bool mountWSLDrive(const std::string& driveLetter, const std::string& mountPath);
     bool unmountUSB(const std::string& mountPath);
-    
+
 };
-
-
-
-    
-
 #endif

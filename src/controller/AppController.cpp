@@ -11,7 +11,7 @@
 
 #include "controller/MediaController.h"
 #include "controller/PlaylistController.h"
-
+#include <filesystem>
 #include <iostream>
 
 AppController::AppController() {}
@@ -71,8 +71,22 @@ bool AppController::loadUSBLibrary() {
 
 bool AppController::reloadUSBLibrary() {
     std::cout << "[AppController] 🔄 Reloading USB library..." << std::endl;
-    return loadUSBLibrary(); // reuse logic
+
+    if (!usbUtils) return false;
+    std::string newPath = usbUtils->detectUSBMount();
+
+    if (newPath.empty() || !std::filesystem::exists(newPath)) {
+        std::cerr << "[AppController] ⚠️ No valid USB path to reload.\n";
+        return false;
+    }
+
+    currentUSBPath = newPath;
+    if (mediaManager) {
+        mediaManager->loadFromDirectory(currentUSBPath);
+    }
+    return true;
 }
+
 
 bool AppController::ejectUSB() {
     if (!usbUtils) return false;
