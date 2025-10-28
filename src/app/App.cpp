@@ -1,22 +1,24 @@
 #include "app/App.h"
 #include "utils/NcursesUI.h"
+#include "utils/FileUtils.h"
 #include "view/UIManager.h"
 #include "controller/AppController.h"
 #include <iostream>
 #include <fstream> 
+#include <filesystem>
 
 #include "model/MediaManager.h" 
 #include "model/PlaylistManager.h"
 
-const std::string PLAYLIST_FILENAME = "/home/quynhmai/mock/MediaPlayer/playlist/playlists.json";
-const std::string MEDIA_PATH = "/home/quynhmai/mock/MediaPlayer/test_media";
+const std::string PLAYLIST_FILENAME = "playlist/playlists.json";
+const std::string MEDIA_PATH = "test_media";
 
 App::App() {}
 App::~App() {
     if (appController && appController->getPlaylistManager()) {
-        std::cout << "App: Saving playlists before exiting to " << PLAYLIST_FILENAME << "..." << std::endl;
-        // Use the constant filename
-        appController->getPlaylistManager()->saveToFile(PLAYLIST_FILENAME);
+        fs::path rootPath = FileUtils::getProjectRootPath();
+        fs::path playlistPath = rootPath / PLAYLIST_FILENAME;
+        appController->getPlaylistManager()->saveToFile(playlistPath.string());
     }
     std::cout << "App: Cleanup complete." << std::endl;
     // unique_ptrs handle cleanup of uiManager, appController, ui
@@ -40,32 +42,31 @@ bool App::init() {
         std::cerr << "Failed to initialize UIManager!" << std::endl;
         return false;
     }
+
+    fs::path rootPath = FileUtils::getProjectRootPath();
+    fs::path mediaPath = rootPath / MEDIA_PATH;
     
     // --- LOAD MEDIA ---
-    std::cout << "App: Loading initial media from " << MEDIA_PATH << " ..." << std::endl;
-    appController->getMediaManager()->loadFromDirectory(MEDIA_PATH);
+    std::cout << "App: Loading initial media from " << mediaPath.string() << " ..." << std::endl;
+    appController->getMediaManager()->loadFromDirectory(mediaPath.string());
 
     // --- LOGGING ---
-    if (appController && appController->getMediaManager()) {
+if (appController && appController->getMediaManager()) {
         int count = appController->getMediaManager()->getTotalFileCount();
         std::cout << "DEBUG App::init: MediaManager reports "
-                  << count << " files AFTER loading from " << MEDIA_PATH << "." << std::endl;
-        // Optional: Log to file
-        //std::ofstream logfile("app_init.log", std::ios::app);
-        //logfile << "DEBUG App::init: MediaManager reports " << count << " files AFTER loading." << std::endl;
+                  << count << " files AFTER loading from " << mediaPath.string() << "." << std::endl;
     } else {
-         std::cout << "DEBUG App::init: AppController or MediaManager is NULL after loading!" << std::endl;
+         std::cout << "DEBUG App::init: AppController or MediaManager is NULL!" << std::endl;
     }
     // --- END LOGGING ---
-
     std::cout << "App: Media loading complete." << std::endl;
 
     // --- LOAD PLAYLISTS AFTER MEDIA ---
+    fs::path playlistPath = rootPath / PLAYLIST_FILENAME;
     if (appController && appController->getPlaylistManager()) {
-        std::cout << "App: Loading playlists from " << PLAYLIST_FILENAME << "..." << std::endl;
-        appController->getPlaylistManager()->loadFromFile(PLAYLIST_FILENAME);
+        std::cout << "App: Loading playlists from " << playlistPath.string() << "..." << std::endl;
+        appController->getPlaylistManager()->loadFromFile(playlistPath.string());
     }
-
     return true;
 }
 

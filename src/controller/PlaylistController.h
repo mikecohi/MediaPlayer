@@ -16,7 +16,7 @@ public:
     bool deletePlaylist(const std::string& name);
     bool addTrackToPlaylist(MediaFile* file, Playlist* playlist);
     bool removeTrackFromPlaylist(MediaFile* file, Playlist* playlist);
-
 private:
     PlaylistManager* playlistManager; // Non-owning pointer
+
 };

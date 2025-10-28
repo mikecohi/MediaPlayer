@@ -4,6 +4,10 @@
 #include <string>
 #include "model/MediaManager.h"
 #include "model/MediaFile.h"
+#include <filesystem> 
+#include <iomanip>
+
+namespace fs = std::filesystem;
 
 class MainFileView : public IMainAreaView {
 public:
@@ -22,4 +26,8 @@ private:
     //Store button locations for mouse clicks
     int editButtonY, editButtonX, editButtonW;
     int addButtonY, addButtonX, addButtonW;
+    int prevBtnY, prevBtnX, prevBtnW;
+    int nextBtnY, nextBtnX, nextBtnW;
+
+    bool fileExplicitlySelected;
 };

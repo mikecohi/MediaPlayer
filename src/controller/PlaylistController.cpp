@@ -65,4 +65,3 @@ bool PlaylistController::removeTrackFromPlaylist(MediaFile* file, Playlist* play
     }
     return success;
 }
-

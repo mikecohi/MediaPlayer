@@ -26,6 +26,7 @@ public:
      * @return The index, or -1 if invalid.
      */
     int getSelectedPlaylistIndex() const; 
+    int getSelectedTrackIndex() const;
 private:
     NcursesUI* ui;
     WINDOW* win;
@@ -38,4 +39,13 @@ private:
     int deleteBtnY, deleteBtnX, deleteBtnW;
     int playBtnY, playBtnX, playBtnW;
     int removeBtnY, removeBtnX, removeBtnW;
+
+    // --- Pagination for Playlists ---
+    int playlistPage;
+    int totalPlaylistPages;
+    int playlistsPerPage;
+
+    // --- Button Coordinates ---
+    int prevBtnY, prevBtnX, prevBtnW;
+    int nextBtnY, nextBtnX, nextBtnW;
 };

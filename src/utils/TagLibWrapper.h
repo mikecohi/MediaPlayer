@@ -22,4 +22,5 @@ public:
      * read or is not a supported audio file.
      */
     std::unique_ptr<Metadata> readTags(const std::string& filePath);
+    bool writeTags(const std::string& filePath, Metadata* metadata);
 };

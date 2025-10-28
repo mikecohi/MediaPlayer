@@ -35,7 +35,7 @@ public:
 
 private:
     void handleInput(InputEvent event);
-    void drawAll();
+    //void drawAll();
     void switchMainView(AppMode newMode);
     WINDOW* getWindowAt(int globalY, int globalX, int& localY, int& localX);
 
@@ -47,12 +47,12 @@ private:
     int screenH, screenW;
     int mainHeight, mainWidth;
 
-    int sidebarWidth;
-    int bottomBarHeight;
-
     WINDOW *sidebarWin;
     WINDOW *mainWin;
     WINDOW *bottomWin; 
+    
+    int sidebarWidth;
+    int bottomBarHeight;
 
     AppMode currentMode;
     FocusArea currentFocus;
@@ -67,6 +67,8 @@ private:
     // --- ADD HELPER METHODS FOR POPUPS ---
     void showCreatePlaylistPopup();
     void showAddToPlaylistPopup(MediaFile* fileToAdd);
+    
     // Add PopupView member
-    std::unique_ptr<PopupView> popup; // Used for various popups
+    std::unique_ptr<PopupView> popup; 
+
 };

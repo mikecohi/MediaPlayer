@@ -5,7 +5,10 @@ MediaPlayer::MediaPlayer(SDLWrapper* sdlWrapper)
     : sdlWrapper(sdlWrapper), 
       currentTrack(nullptr), 
       currentState(PlayerState::STOPPED), 
-      currentVolume(100) // Default volume
+      currentVolume(100), // Default volume
+      onTrackFinishedCallback_(nullptr),
+      isStoppingManually_(false),
+      activePlaylist_(nullptr)
 {
     if (sdlWrapper == nullptr) {
         std::cerr << "CRITICAL: MediaPlayer started with null SDLWrapper!" << std::endl;
@@ -19,18 +22,22 @@ MediaPlayer::MediaPlayer(SDLWrapper* sdlWrapper)
     });
 }
 
-void MediaPlayer::play(MediaFile* file) {
+void MediaPlayer::play(MediaFile* file, Playlist* context) {
     if (file == nullptr) return;
 
     // (Giai đoạn 3 sẽ kiểm tra xem có phải file đang pause không)
-    
+    isStoppingManually_ = true;
+
     if (sdlWrapper->playAudio(file->getFilePath())) {
         currentTrack = file;
         currentState = PlayerState::PLAYING;
+        activePlaylist_ = context;
     } else {
         currentTrack = nullptr;
         currentState = PlayerState::STOPPED;
+        activePlaylist_ = nullptr;
     }
+    isStoppingManually_ = false;
 }
 
 void MediaPlayer::pause() {
@@ -44,9 +51,12 @@ void MediaPlayer::pause() {
 }
 
 void MediaPlayer::stop() {
+    isStoppingManually_ = true;
     sdlWrapper->stopAudio();
     currentState = PlayerState::STOPPED;
     currentTrack = nullptr;
+    activePlaylist_ = nullptr;
+    isStoppingManually_ = false;
 }
 
 void MediaPlayer::setVolume(int volume) {
@@ -90,7 +100,32 @@ MediaFile* MediaPlayer::getCurrentTrack() const {
 
 void MediaPlayer::onTrackFinished() {
     std::cout << "MediaPlayer: Track finished." << std::endl;
+    // currentState = PlayerState::STOPPED;
+    // currentTrack = nullptr;
+    if (isStoppingManually_) {
+        std::cout << "MediaPlayer: Manual stop detected, ignoring auto-next." << std::endl;
+        return;
+    }
+
+    MediaFile* finishedTrack = currentTrack;
     currentState = PlayerState::STOPPED;
-    currentTrack = nullptr;
-    // (Giai đoạn 3: Logic auto-next sẽ được thêm vào đây)
+
+    //Auto-next 
+    if (onTrackFinishedCallback_) {
+        onTrackFinishedCallback_(); // <-- (call MediaController::nextTrack)
+    }
+    if (currentTrack == finishedTrack) {
+        std::cout << "MediaPlayer: Auto-next did not start new track. Setting track to null." << std::endl;
+        currentTrack = nullptr;
+    } else {
+        std::cout << "MediaPlayer: Auto-next successfully started a new track." << std::endl;
+    }
+}
+
+void MediaPlayer::setOnTrackFinishedCallback(std::function<void()> callback) {
+    onTrackFinishedCallback_ = callback;
+}
+
+Playlist* MediaPlayer::getActivePlaylist() const {
+    return activePlaylist_;
 }
