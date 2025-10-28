@@ -106,13 +106,13 @@ void MainUSBView::draw(FocusArea focus) {
     if (fileExplicitlySelected) {
         MediaFile* sf = getSelectedFile();
         if (sf && sf->getMetadata()) {
-            mvwprintw(win, 4, listWidth + 2, "Title: %s", sf->getMetadata()->title.c_str());
-            mvwprintw(win, 5, listWidth + 2, "Artist: %s", sf->getMetadata()->getField("artist").c_str());
+            mvwprintw(win, 5, listWidth + 2, "Title: %s", sf->getMetadata()->title.c_str());
+            mvwprintw(win, 6, listWidth + 2, "Artist: %s", sf->getMetadata()->getField("artist").c_str());
         } else {
-            mvwprintw(win, 4, listWidth + 2, "(No metadata found)");
+            mvwprintw(win, 5, listWidth + 2, "(No metadata found)");
         }
     } else {
-        mvwprintw(win, 4, listWidth + 2, "(Select a file to view details)");
+        mvwprintw(win, 5, listWidth + 2, "(Select a file to view details)");
     }
 
     // --- Buttons: Add to Playlist + Reload + Eject ---
