@@ -173,22 +173,33 @@ void PlaylistManager::loadFromFile(const std::string& filename) {
             if (newPlaylist) {
                 // Iterate through the array of track paths in the JSON
                 for (const auto& trackPathJson : playlistObj["tracks"]) {
-                    if (trackPathJson.is_string()) {
+                    if (trackPathJson.is_string()) 
+                    {
                         std::string trackPath = trackPathJson;
                         // IMPORTANT: Find the corresponding MediaFile pointer in MediaManager
-                        MediaFile* trackPtr = mediaManager->findFileByPath(trackPath);
-                        if (trackPtr) {
-                            newPlaylist->addTrack(trackPtr); // Add the valid pointer
-                        } else {
-                            // Log missing tracks but continue loading
-                            std::cerr << "PlaylistManager Warning: Track path from playlist '" << name
-                                      << "' not found in current MediaManager library, skipping: " << trackPath << std::endl;
-                        }
-                    } else {
+                        MediaFile* file = nullptr;
+
+                        if (mediaManager)
+                            file = mediaManager->findFileByPath(trackPath);
+
+                        // 🔹 Nếu không tìm thấy trong thư viện nội bộ, thử trong USB
+                        if (!file && usbMediaManager)
+                            file = usbMediaManager->findFileByPath(trackPath);
+
+                        if (file)
+                            newPlaylist->addTrack(file);
+                        else
+                            std::cerr << "PlaylistManager Warning: Track not found in any library: "
+                                    << trackPath << std::endl;
+                    } 
+                    else 
+                    {
                          std::cerr << "PlaylistManager Warning: Invalid track path type in playlist '" << name << "', skipping." << std::endl;
                     }
                 }
-            } else {
+            } 
+            else 
+            {
                  std::cerr << "PlaylistManager Warning: Could not create playlist '" << name << "' during load (maybe duplicate name?)." << std::endl;
             }
         }
@@ -206,4 +217,7 @@ void PlaylistManager::loadFromFile(const std::string& filename) {
 void PlaylistManager::autoSave() {
     std::cout << "[DEBUG] PlaylistManager: Auto-saving changes..." << std::endl;
     saveToFile(); 
+}
+void PlaylistManager::setUSBMediaManager(MediaManager* usbManager) {
+    usbMediaManager = usbManager;
 }

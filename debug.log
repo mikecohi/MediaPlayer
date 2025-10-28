@@ -11,43 +11,59 @@ MediaManager: Found 13 media files.
 MediaManager: Load complete. Library size: 13
 DEBUG App::init: MediaManager reports 13 files AFTER loading from /home/dung20210222/Documents/F/MediaPlayer/test_media.
 App: Media loading complete.
+App: Checking for USB media...
+[USBUtils] ✅ Found USB at: "/media/dung20210222/38D0214FD02114A2"
+[AppController] ✅ Loading media from: /media/dung20210222/38D0214FD02114A2
+MediaManager: Loading from directory: /media/dung20210222/38D0214FD02114A2
+MediaManager: Found 1 media files.
+MediaManager: Load complete. Library size: 1
+App: USB media loaded successfully. Found 1 files.
 App: Loading playlists from /home/dung20210222/Documents/F/MediaPlayer/playlist/playlists.json...
 PlaylistManager: Playlists loaded successfully from /home/dung20210222/Documents/F/MediaPlayer/playlist/playlists.json
-MediaController: playTrack called for FaSHioN.mp3
-DEBUG SDLWrapper: playAudio requested for: /home/dung20210222/Documents/F/MediaPlayer/test_media/media/KPOP/FaSHioN.mp3
+MediaController: playTrack called for Super.mp3
+DEBUG SDLWrapper: playAudio requested for: /home/dung20210222/Documents/F/MediaPlayer/test_media/media/KPOP/Super.mp3
 DEBUG SDLWrapper: Loading music with Mix_LoadMUS...
 DEBUG SDLWrapper: Music loaded successfully.
 DEBUG SDLWrapper: Calling Mix_PlayMusic...
 DEBUG SDLWrapper: Mix_PlayMusic call succeeded. Playback started.
-DEBUG SDLWrapper: musicFinishedCallback() triggered.
-MediaPlayer: Track finished.
-MediaController: nextTrack called.
-MediaController: playTrack called for Crazy Form.mp3
-DEBUG SDLWrapper: playAudio requested for: /home/dung20210222/Documents/F/MediaPlayer/test_media/media/KPOP/Crazy Form.mp3
-DEBUG SDLWrapper: Freeing current music resource.
-DEBUG SDLWrapper: Loading music with Mix_LoadMUS...
-DEBUG SDLWrapper: Music loaded successfully.
-DEBUG SDLWrapper: Calling Mix_PlayMusic...
-DEBUG SDLWrapper: Mix_PlayMusic call succeeded. Playback started.
-MediaPlayer: Auto-next successfully started a new track.
-DEBUG SDLWrapper: musicFinishedCallback() triggered.
-MediaPlayer: Track finished.
-MediaController: nextTrack called.
-MediaController: playTrack called for Jopping.mp3
-DEBUG SDLWrapper: playAudio requested for: /home/dung20210222/Documents/F/MediaPlayer/test_media/media/KPOP/Jopping.mp3
-DEBUG SDLWrapper: Freeing current music resource.
-DEBUG SDLWrapper: Loading music with Mix_LoadMUS...
-DEBUG SDLWrapper: Music loaded successfully.
-DEBUG SDLWrapper: Calling Mix_PlayMusic...
-DEBUG SDLWrapper: Mix_PlayMusic call succeeded. Playback started.
-MediaPlayer: Auto-next successfully started a new track.
---- Application Shutting Down ---
-PlaylistManager: Playlists saved to /home/dung20210222/Documents/F/MediaPlayer/playlist/playlists.json
-App: Cleanup complete.
-DEBUG SDLWrapper: Closing...
+[USBUtils] ✅ Found USB at: "/media/dung20210222/38D0214FD02114A2"
+[AppController] ✅ Loading media from: /media/dung20210222/38D0214FD02114A2
+MediaManager: Loading from directory: /media/dung20210222/38D0214FD02114A2
+MediaManager: Found 1 media files.
+MediaManager: Load complete. Library size: 1
 DEBUG SDLWrapper: Halting music.
 DEBUG SDLWrapper: musicFinishedCallback() triggered.
 MediaPlayer: Track finished.
-MediaPlayer: Auto-next did not start new track. Setting track to null.
+MediaPlayer: Manual stop detected, ignoring auto-next.
 DEBUG SDLWrapper: Freeing current music resource.
-DEBUG SDLWrapper: Closed successfully.
+[USBUtils] ❌ Failed to unmount: /media/dung20210222/38D0214FD02114A2
+[USBUtils] ✅ Found USB at: "/media/dung20210222/38D0214FD02114A2"
+[AppController] ✅ Loading media from: /media/dung20210222/38D0214FD02114A2
+MediaManager: Loading from directory: /media/dung20210222/38D0214FD02114A2
+MediaManager: Found 1 media files.
+MediaManager: Load complete. Library size: 1
+[USBUtils] ❌ Failed to unmount: /media/dung20210222/38D0214FD02114A2
+[USBUtils] ✅ Found USB at: "/media/dung20210222/38D0214FD02114A2"
+[AppController] ✅ Loading media from: /media/dung20210222/38D0214FD02114A2
+MediaManager: Loading from directory: /media/dung20210222/38D0214FD02114A2
+MediaManager: Found 1 media files.
+MediaManager: Load complete. Library size: 1
+[USBUtils] ❌ Failed to unmount: /media/dung20210222/38D0214FD02114A2
+[USBUtils] ✅ Found USB at: "/media/dung20210222/38D0214FD02114A2"
+[AppController] ✅ Loading media from: /media/dung20210222/38D0214FD02114A2
+MediaManager: Loading from directory: /media/dung20210222/38D0214FD02114A2
+MediaManager: Found 1 media files.
+MediaManager: Load complete. Library size: 1
+[USBUtils] ❌ Failed to unmount: /media/dung20210222/38D0214FD02114A2
+[USBUtils] ✅ Found USB at: "/media/dung20210222/38D0214FD02114A2"
+[AppController] ✅ Loading media from: /media/dung20210222/38D0214FD02114A2
+MediaManager: Loading from directory: /media/dung20210222/38D0214FD02114A2
+MediaManager: Found 1 media files.
+MediaManager: Load complete. Library size: 1
+[USBUtils] ❌ Failed to unmount: /media/dung20210222/38D0214FD02114A2
+[USBUtils] ✅ Found USB at: "/media/dung20210222/38D0214FD02114A2"
+[AppController] ✅ Loading media from: /media/dung20210222/38D0214FD02114A2
+MediaManager: Loading from directory: /media/dung20210222/38D0214FD02114A2
+MediaManager: Found 1 media files.
+MediaManager: Load complete. Library size: 1
+--- Application Shutting Down ---

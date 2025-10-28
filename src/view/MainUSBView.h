@@ -12,6 +12,7 @@ public:
     void draw(FocusArea focus) override;
     MainAreaAction handleInput(InputEvent event, FocusArea focus) override;
     MainAreaAction handleMouse(int localY, int localX) override;
+    MediaFile* getSelectedFile() const;
 
 private:
     NcursesUI* ui;
@@ -33,5 +34,5 @@ private:
     int nextBtnY, nextBtnX, nextBtnW;
 
     void updateUSBStatus();
-    MediaFile* getSelectedFile() const;
+    
 };

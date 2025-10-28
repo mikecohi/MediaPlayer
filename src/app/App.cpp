@@ -10,10 +10,13 @@
 #include "model/MediaManager.h" 
 #include "model/PlaylistManager.h"
 
+namespace fs = std::filesystem;
+
 const std::string PLAYLIST_FILENAME = "playlist/playlists.json";
 const std::string MEDIA_PATH = "test_media";
 
 App::App() {}
+
 App::~App() {
     if (appController && appController->getPlaylistManager()) {
         fs::path rootPath = FileUtils::getProjectRootPath();
@@ -45,28 +48,37 @@ bool App::init() {
 
     fs::path rootPath = FileUtils::getProjectRootPath();
     fs::path mediaPath = rootPath / MEDIA_PATH;
-    
-    // --- LOAD MEDIA ---
+
+    // --- 1️⃣ LOAD MEDIA TRONG THƯ MỤC CỤC BỘ ---
     std::cout << "App: Loading initial media from " << mediaPath.string() << " ..." << std::endl;
     appController->getMediaManager()->loadFromDirectory(mediaPath.string());
 
     // --- LOGGING ---
-if (appController && appController->getMediaManager()) {
+    if (appController && appController->getMediaManager()) {
         int count = appController->getMediaManager()->getTotalFileCount();
         std::cout << "DEBUG App::init: MediaManager reports "
                   << count << " files AFTER loading from " << mediaPath.string() << "." << std::endl;
     } else {
-         std::cout << "DEBUG App::init: AppController or MediaManager is NULL!" << std::endl;
+        std::cout << "DEBUG App::init: AppController or MediaManager is NULL!" << std::endl;
     }
-    // --- END LOGGING ---
     std::cout << "App: Media loading complete." << std::endl;
 
-    // --- LOAD PLAYLISTS AFTER MEDIA ---
+    // --- 2️⃣ LOAD USB MEDIA (NẾU CÓ) TRƯỚC KHI LOAD PLAYLIST ---
+    std::cout << "App: Checking for USB media..." << std::endl;
+    if (appController->loadUSBLibrary()) {
+        int usbCount = appController->getUSBMediaManager()->getTotalFileCount();
+        std::cout << "App: USB media loaded successfully. Found " << usbCount << " files." << std::endl;
+    } else {
+        std::cout << "App: No USB media detected or failed to load." << std::endl;
+    }
+
+    // --- 3️⃣ LOAD PLAYLIST SAU KHI CẢ HAI MEDIA MANAGER ĐÃ SẴN SÀNG ---
     fs::path playlistPath = rootPath / PLAYLIST_FILENAME;
     if (appController && appController->getPlaylistManager()) {
         std::cout << "App: Loading playlists from " << playlistPath.string() << "..." << std::endl;
         appController->getPlaylistManager()->loadFromFile(playlistPath.string());
     }
+
     return true;
 }
 

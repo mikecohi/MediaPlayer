@@ -25,6 +25,7 @@ public:
     MediaPlayer* getMediaPlayer() const;
     MediaController* getMediaController() const;
     PlaylistController* getPlaylistController() const;
+    MediaManager* getUSBMediaManager() const;
     bool loadUSBLibrary();
     bool reloadUSBLibrary();
     bool ejectUSB();
@@ -41,6 +42,7 @@ private:
     std::unique_ptr<MediaManager> mediaManager;
     std::unique_ptr<PlaylistManager> playlistManager;
     std::unique_ptr<MediaPlayer> mediaPlayer;
+    std::unique_ptr<MediaManager> usbMediaManager;
 
     // --- Ownership Controller ---
     std::unique_ptr<MediaController> mediaController;
