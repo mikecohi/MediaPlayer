@@ -39,8 +39,15 @@ MainUSBView::MainUSBView(NcursesUI* ui, WINDOW* win, AppController* controller)
 void MainUSBView::updateUSBStatus() {
     if (!appController) return;
     mediaManager = appController->getUSBMediaManager();
-    usbConnected = appController->loadUSBLibrary(); // Thử load, nếu thành công thì có USB
+
+    // Kiểm tra USB hiện có (chỉ xem dữ liệu hiện tại, không load lại)
+    if (mediaManager && mediaManager->getTotalFileCount() > 0) {
+        usbConnected = true;
+    } else {
+        usbConnected = false;
+    }
 }
+
 
 // --- DRAW FUNCTION ---
 void MainUSBView::draw(FocusArea focus) {
@@ -241,7 +248,7 @@ MainAreaAction MainUSBView::handleMouse(int y, int x) {
     int width; getmaxyx(win, std::ignore, width); int listWidth = width / 2;   
 
     if (y == reloadBtnY && x >= reloadBtnX && x < reloadBtnX + reloadBtnW) {
-        appController->reloadUSBLibrary();
+        appController->loadUSBLibrary();
         updateUSBStatus();
         return MainAreaAction::NONE;
     }

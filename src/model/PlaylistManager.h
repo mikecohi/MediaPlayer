@@ -30,4 +30,11 @@ public:
     void loadFromFile(const std::string& filename);
     void autoSave();
     void setUSBMediaManager(MediaManager* usbManager);
+
+    /**
+     * @brief Xóa tất cả track trong các playlist có đường dẫn nằm trong pathPrefix (VD: /media/user/USB_NAME/)
+     */
+    void removeTracksFromPathPrefix(const std::string& pathPrefix);
+
+
 };

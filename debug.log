@@ -12,27 +12,13 @@ MediaManager: Load complete. Library size: 13
 DEBUG App::init: MediaManager reports 13 files AFTER loading from /home/dung20210222/Documents/F/MediaPlayer/test_media.
 App: Media loading complete.
 App: Checking for USB media...
-[USBUtils] ✅ Found USB at: "/media/dung20210222/IR5_CCSA_X6"
-[AppController] ✅ Loading media from: /media/dung20210222/IR5_CCSA_X6
-MediaManager: Loading from directory: /media/dung20210222/IR5_CCSA_X6
-MediaManager: Found 8 media files.
-MediaManager: Load complete. Library size: 8
-App: USB media loaded successfully. Found 8 files.
+[USBUtils] ❌ No USB device found.
+[AppController] ❌ No USB detected.
+App: No USB media detected or failed to load.
 App: Loading playlists from /home/dung20210222/Documents/F/MediaPlayer/playlist/playlists.json...
+PlaylistManager Warning: Track not found in any library: /media/dung20210222/38D0214FD02114A2/1.mp3
 PlaylistManager: Playlists loaded successfully from /home/dung20210222/Documents/F/MediaPlayer/playlist/playlists.json
-MediaController: pauseOrResume called.
-MediaController: playPlaylist called for 'Test Playlist 1', starting at track 0
-DEBUG SDLWrapper: playAudio requested for: /home/dung20210222/Documents/F/MediaPlayer/test_media/media/KPOP/FaSHioN.mp3
-DEBUG SDLWrapper: Loading music with Mix_LoadMUS...
-DEBUG SDLWrapper: Music loaded successfully.
-DEBUG SDLWrapper: Calling Mix_PlayMusic...
-DEBUG SDLWrapper: Mix_PlayMusic call succeeded. Playback started.
 --- Application Shutting Down ---
 App: Cleanup complete.
 DEBUG SDLWrapper: Closing...
-DEBUG SDLWrapper: Halting music.
-DEBUG SDLWrapper: musicFinishedCallback() triggered.
-MediaPlayer: Track finished.
-MediaPlayer: Auto-next did not start new track. Setting track to null.
-DEBUG SDLWrapper: Freeing current music resource.
 DEBUG SDLWrapper: Closed successfully.

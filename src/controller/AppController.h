@@ -27,7 +27,7 @@ public:
     PlaylistController* getPlaylistController() const;
     MediaManager* getUSBMediaManager() const;
     bool loadUSBLibrary();
-    bool reloadUSBLibrary();
+//    bool reloadUSBLibrary();
     bool ejectUSB();
 
 private:

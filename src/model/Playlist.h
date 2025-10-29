@@ -21,7 +21,7 @@ public:
      * @param file A non-owning pointer to the MediaFile.
      */
     void addTrack(MediaFile* file);
-
+    
     /**
      * @brief Removes a track from the playlist.
      * @param file The pointer to the MediaFile to remove.

@@ -221,3 +221,30 @@ void PlaylistManager::autoSave() {
 void PlaylistManager::setUSBMediaManager(MediaManager* usbManager) {
     usbMediaManager = usbManager;
 }
+
+void PlaylistManager::removeTracksFromPathPrefix(const std::string& pathPrefix) {
+    if (pathPrefix.empty()) return;
+
+    std::cout << "[PlaylistManager] 🧹 Removing all tracks from USB path: " << pathPrefix << std::endl;
+
+    for (auto& playlistPtr : playlists) {
+        if (!playlistPtr) continue;
+        std::vector<MediaFile*> cleanedTracks;
+
+        for (auto* track : playlistPtr->getTracks()) {
+            if (!track) continue;
+            std::string path = track->getFilePath();
+
+            // Giữ lại track nếu không nằm trong USB
+            if (path.rfind(pathPrefix, 0) != 0) {
+                cleanedTracks.push_back(track);
+            } else {
+                std::cout << "  - Removed: " << path << std::endl;
+            }
+        }
+
+        // Cập nhật lại playlist
+        const_cast<std::vector<MediaFile*>&>(playlistPtr->getTracks()) = cleanedTracks;
+    }
+}
+

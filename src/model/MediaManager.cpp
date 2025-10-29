@@ -4,6 +4,8 @@
 #include <iostream>
 #include <cmath> // For std::ceil
 #include <algorithm>
+#include <filesystem>
+#include <unordered_map>
 
 MediaManager::MediaManager(TagLibWrapper* tagUtil)
     : tagUtil(tagUtil) 

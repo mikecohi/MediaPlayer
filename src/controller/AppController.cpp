@@ -74,60 +74,59 @@ bool AppController::loadUSBLibrary() {
     // 🔹 Sau khi load USB, cập nhật lại PlaylistManager
     if (playlistManager)
         playlistManager->setUSBMediaManager(usbMediaManager.get());
-        
+    // if (playlistManager)
+    // playlistManager->refreshTracksAfterReload();
+    
     return true;
 }
 
-bool AppController::reloadUSBLibrary() {
-    std::cout << "[AppController] 🔄 Reloading USB library..." << std::endl;
+// bool AppController::reloadUSBLibrary() {
+//     std::cout << "[AppController] 🔄 Reloading USB library..." << std::endl;
 
-    if (!usbUtils) return false;
-    std::string newPath = usbUtils->detectUSBMount();
+//     if (!usbUtils) return false;
+//     std::string newPath = usbUtils->detectUSBMount();
 
-    if (newPath.empty() || !std::filesystem::exists(newPath)) {
-        std::cerr << "[AppController] ⚠️ No valid USB path to reload.\n";
-        return false;
-    }
+//     if (newPath.empty() || !std::filesystem::exists(newPath)) {
+//         std::cerr << "[AppController] ⚠️ No valid USB path to reload.\n";
+//         return false;
+//     }
 
-    currentUSBPath = newPath;
-    if (usbMediaManager) {
-        usbMediaManager->loadFromDirectory(currentUSBPath);
-    }
-    return true;
-}
+//     currentUSBPath = newPath;
+//     if (usbMediaManager) {
+//         usbMediaManager->loadFromDirectory(currentUSBPath);
+//     }
+//     if (playlistManager)
+//     playlistManager->refreshTracksAfterReload();
+
+//     return true;
+// }
 
 bool AppController::ejectUSB() {
-    if (!usbUtils) return false;
+    if (!usbUtils || currentUSBPath.empty()) return false;
 
-    if (currentUSBPath.empty()) {
-        std::cerr << "[AppController] ⚠️ No USB currently mounted.\n";
-        return false;
-    }
-
-    // --- 1️⃣ Chỉ dừng phát nếu bài hiện tại nằm trong USB ---
+    // Dừng phát nếu đang chạy file trong USB
     if (mediaPlayer) {
         MediaFile* current = mediaPlayer->getCurrentTrack();
-        if (current) {
-            std::string currentPath = current->getFilePath();
-            // Kiểm tra xem bài đang phát có nằm trong USB mount path hay không
-            if (currentPath.rfind(currentUSBPath, 0) == 0) {
-                std::cout << "[AppController] ⏹ Stopping track from USB before eject.\n";
-                mediaPlayer->stop();
-            } else {
-                std::cout << "[AppController] ▶ Current track not from USB. Continue playing.\n";
-            }
+        if (current && current->getFilePath().rfind(currentUSBPath, 0) == 0) {
+            mediaPlayer->stop();
         }
     }
 
-    // --- 2️⃣ Thực hiện eject ---
+    // Dọn dẹp bộ nhớ và playlist
+    if (usbMediaManager) usbMediaManager->clearLibrary();
+    //if (playlistManager) playlistManager->removeTracksFromPathPrefix(currentUSBPath);
+
+    // Gỡ mount an toàn
     bool ok = usbUtils->unmountUSB(currentUSBPath);
-    if (ok && usbMediaManager) {
-        usbMediaManager->clearLibrary(); // 🔹 clear current data
-        std::cout << "[AppController] 🧹 USB MediaManager cleared after eject.\n";
-    }
+    if (ok)
+        std::cout << "[AppController] ✅ USB unmounted safely.\n";
+    else
+        std::cerr << "[AppController] ⚠️ Failed to unmount USB.\n";
+
     currentUSBPath.clear();
     return ok;
 }
+
 
 
 

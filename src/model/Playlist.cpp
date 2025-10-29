@@ -40,3 +40,4 @@ bool Playlist::removeTrack(MediaFile* file) {
 const std::vector<MediaFile*>& Playlist::getTracks() const {
     return this->tracks;
 }
+
