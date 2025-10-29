@@ -12,21 +12,11 @@ MediaManager: Load complete. Library size: 13
 DEBUG App::init: MediaManager reports 13 files AFTER loading from /home/dung20210222/Documents/F/MediaPlayer/test_media.
 App: Media loading complete.
 App: Checking for USB media...
-[USBUtils] ✅ Found USB at: "/media/dung20210222/IR5_CCSA_X6"
-[AppController] ✅ Loading media from: /media/dung20210222/IR5_CCSA_X6
-MediaManager: Loading from directory: /media/dung20210222/IR5_CCSA_X6
-MediaManager: Found 8 media files.
-MediaManager: Load complete. Library size: 8
-App: USB media loaded successfully. Found 8 files.
+[USBUtils] ❌ No USB device found.
+[AppController] ❌ No USB detected.
+App: No USB media detected or failed to load.
 App: Loading playlists from /home/dung20210222/Documents/F/MediaPlayer/playlist/playlists.json...
 PlaylistManager: Playlists loaded successfully from /home/dung20210222/Documents/F/MediaPlayer/playlist/playlists.json
-[USBUtils] ✅ Found USB at: "/media/dung20210222/IR5_CCSA_X6"
-[AppController] ✅ Loading media from: /media/dung20210222/IR5_CCSA_X6
-MediaManager: Loading from directory: /media/dung20210222/IR5_CCSA_X6
-MediaManager: Found 8 media files.
-MediaManager: Load complete. Library size: 8
-[USBUtils] ✅ USB safely unmounted: /media/dung20210222/IR5_CCSA_X6
-[AppController] 🧹 MediaManager cleared after eject.
 [USBUtils] ❌ No USB device found.
 [AppController] ❌ No USB detected.
 [AppController] 🔄 Reloading USB library...
@@ -39,21 +29,89 @@ MediaManager: Load complete. Library size: 8
 MediaManager: Loading from directory: /media/dung20210222/IR5_CCSA_X6
 MediaManager: Found 8 media files.
 MediaManager: Load complete. Library size: 8
-MediaController: playTrack called for Buông Đôi Tay Nhau Ra.mp3
-DEBUG SDLWrapper: playAudio requested for: /media/dung20210222/IR5_CCSA_X6/music/Buông Đôi Tay Nhau Ra.mp3
+MediaController: playTrack called for Super.mp3
+DEBUG SDLWrapper: playAudio requested for: /home/dung20210222/Documents/F/MediaPlayer/test_media/media/KPOP/Super.mp3
 DEBUG SDLWrapper: Loading music with Mix_LoadMUS...
 DEBUG SDLWrapper: Music loaded successfully.
 DEBUG SDLWrapper: Calling Mix_PlayMusic...
 DEBUG SDLWrapper: Mix_PlayMusic call succeeded. Playback started.
+[USBUtils] ✅ Found USB at: "/media/dung20210222/IR5_CCSA_X6"
+[AppController] ✅ Loading media from: /media/dung20210222/IR5_CCSA_X6
+MediaManager: Loading from directory: /media/dung20210222/IR5_CCSA_X6
+MediaManager: Found 8 media files.
+MediaManager: Load complete. Library size: 8
+[AppController] ▶ Current track not from USB. Continue playing.
+[USBUtils] ✅ USB safely unmounted: /media/dung20210222/IR5_CCSA_X6
+[AppController] 🧹 USB MediaManager cleared after eject.
+[USBUtils] ❌ No USB device found.
+[AppController] ❌ No USB detected.
+MediaController: nextTrack called.
+MediaController: playTrack called for HER.mp3
+DEBUG SDLWrapper: playAudio requested for: /home/dung20210222/Documents/F/MediaPlayer/test_media/media/HER.mp3
+DEBUG SDLWrapper: Halting music.
+DEBUG SDLWrapper: musicFinishedCallback() triggered.
+MediaPlayer: Track finished.
+MediaPlayer: Manual stop detected, ignoring auto-next.
+DEBUG SDLWrapper: Freeing current music resource.
+DEBUG SDLWrapper: Loading music with Mix_LoadMUS...
+DEBUG SDLWrapper: Music loaded successfully.
+DEBUG SDLWrapper: Calling Mix_PlayMusic...
+DEBUG SDLWrapper: Mix_PlayMusic call succeeded. Playback started.
+MediaController: nextTrack called.
+MediaController: playTrack called for AAA.mp3
+DEBUG SDLWrapper: playAudio requested for: /home/dung20210222/Documents/F/MediaPlayer/test_media/media/VPOP/AAA.mp3
+DEBUG SDLWrapper: Halting music.
+DEBUG SDLWrapper: musicFinishedCallback() triggered.
+MediaPlayer: Track finished.
+MediaPlayer: Manual stop detected, ignoring auto-next.
+DEBUG SDLWrapper: Freeing current music resource.
+DEBUG SDLWrapper: Loading music with Mix_LoadMUS...
+DEBUG SDLWrapper: Music loaded successfully.
+DEBUG SDLWrapper: Calling Mix_PlayMusic...
+DEBUG SDLWrapper: Mix_PlayMusic call succeeded. Playback started.
+MediaController: nextTrack called.
+MediaController: playTrack called for NOT MY FAULT.mp3
+DEBUG SDLWrapper: playAudio requested for: /home/dung20210222/Documents/F/MediaPlayer/test_media/media/VPOP/NOT MY FAULT.mp3
+DEBUG SDLWrapper: Halting music.
+DEBUG SDLWrapper: musicFinishedCallback() triggered.
+MediaPlayer: Track finished.
+MediaPlayer: Manual stop detected, ignoring auto-next.
+DEBUG SDLWrapper: Freeing current music resource.
+DEBUG SDLWrapper: Loading music with Mix_LoadMUS...
+DEBUG SDLWrapper: Music loaded successfully.
+DEBUG SDLWrapper: Calling Mix_PlayMusic...
+DEBUG SDLWrapper: Mix_PlayMusic call succeeded. Playback started.
+MediaController: pauseOrResume called.
+DEBUG SDLWrapper: Pausing music.
+[AppController] 🔄 Reloading USB library...
+[USBUtils] ✅ Found USB at: "/media/dung20210222/IR5_CCSA_X6"
+MediaManager: Loading from directory: /media/dung20210222/IR5_CCSA_X6
+MediaManager: Found 8 media files.
+MediaManager: Load complete. Library size: 8
+[USBUtils] ✅ Found USB at: "/media/dung20210222/IR5_CCSA_X6"
+[AppController] ✅ Loading media from: /media/dung20210222/IR5_CCSA_X6
+MediaManager: Loading from directory: /media/dung20210222/IR5_CCSA_X6
+MediaManager: Found 8 media files.
+MediaManager: Load complete. Library size: 8
+MediaController: playTrack called for Bánh Mì Không.mp3
+DEBUG SDLWrapper: playAudio requested for: /media/dung20210222/IR5_CCSA_X6/music/Bánh Mì Không.mp3
+DEBUG SDLWrapper: Halting music.
+DEBUG SDLWrapper: musicFinishedCallback() triggered.
+MediaPlayer: Track finished.
+MediaPlayer: Manual stop detected, ignoring auto-next.
+DEBUG SDLWrapper: Freeing current music resource.
+DEBUG SDLWrapper: Loading music with Mix_LoadMUS...
+DEBUG SDLWrapper: Music loaded successfully.
+DEBUG SDLWrapper: Calling Mix_PlayMusic...
+DEBUG SDLWrapper: Mix_PlayMusic call succeeded. Playback started.
+[AppController] ⏹ Stopping track from USB before eject.
 DEBUG SDLWrapper: Halting music.
 DEBUG SDLWrapper: musicFinishedCallback() triggered.
 MediaPlayer: Track finished.
 MediaPlayer: Manual stop detected, ignoring auto-next.
 DEBUG SDLWrapper: Freeing current music resource.
 [USBUtils] ✅ USB safely unmounted: /media/dung20210222/IR5_CCSA_X6
-[AppController] 🧹 MediaManager cleared after eject.
-[USBUtils] ❌ No USB device found.
-[AppController] ❌ No USB detected.
+[AppController] 🧹 USB MediaManager cleared after eject.
 [USBUtils] ❌ No USB device found.
 [AppController] ❌ No USB detected.
 [AppController] 🔄 Reloading USB library...
@@ -66,56 +124,6 @@ MediaManager: Load complete. Library size: 8
 MediaManager: Loading from directory: /media/dung20210222/IR5_CCSA_X6
 MediaManager: Found 8 media files.
 MediaManager: Load complete. Library size: 8
-[USBUtils] ✅ Found USB at: "/media/dung20210222/IR5_CCSA_X6"
-[AppController] ✅ Loading media from: /media/dung20210222/IR5_CCSA_X6
-MediaManager: Loading from directory: /media/dung20210222/IR5_CCSA_X6
-MediaManager: Found 8 media files.
-MediaManager: Load complete. Library size: 8
-MediaController: playTrack called for Badtrip.mp3
-DEBUG SDLWrapper: playAudio requested for: /media/dung20210222/IR5_CCSA_X6/music/Badtrip.mp3
-DEBUG SDLWrapper: Loading music with Mix_LoadMUS...
-DEBUG SDLWrapper: Music loaded successfully.
-DEBUG SDLWrapper: Calling Mix_PlayMusic...
-DEBUG SDLWrapper: Mix_PlayMusic call succeeded. Playback started.
-DEBUG SDLWrapper: Halting music.
-DEBUG SDLWrapper: musicFinishedCallback() triggered.
-MediaPlayer: Track finished.
-MediaPlayer: Manual stop detected, ignoring auto-next.
-DEBUG SDLWrapper: Freeing current music resource.
-[USBUtils] ✅ USB safely unmounted: /media/dung20210222/IR5_CCSA_X6
-[AppController] 🧹 MediaManager cleared after eject.
-[USBUtils] ❌ No USB device found.
-[AppController] ❌ No USB detected.
-[AppController] 🔄 Reloading USB library...
-[USBUtils] ✅ Found USB at: "/media/dung20210222/IR5_CCSA_X6"
-MediaManager: Loading from directory: /media/dung20210222/IR5_CCSA_X6
-MediaManager: Found 8 media files.
-MediaManager: Load complete. Library size: 8
-[USBUtils] ✅ Found USB at: "/media/dung20210222/IR5_CCSA_X6"
-[AppController] ✅ Loading media from: /media/dung20210222/IR5_CCSA_X6
-MediaManager: Loading from directory: /media/dung20210222/IR5_CCSA_X6
-MediaManager: Found 8 media files.
-MediaManager: Load complete. Library size: 8
-MediaController: playTrack called for Crazy Form.mp3
-DEBUG SDLWrapper: playAudio requested for: /home/dung20210222/Documents/F/MediaPlayer/test_media/media/KPOP/Crazy Form.mp3
-DEBUG SDLWrapper: Loading music with Mix_LoadMUS...
-DEBUG SDLWrapper: Music loaded successfully.
-DEBUG SDLWrapper: Calling Mix_PlayMusic...
-DEBUG SDLWrapper: Mix_PlayMusic call succeeded. Playback started.
-[USBUtils] ✅ Found USB at: "/media/dung20210222/IR5_CCSA_X6"
-[AppController] ✅ Loading media from: /media/dung20210222/IR5_CCSA_X6
-MediaManager: Loading from directory: /media/dung20210222/IR5_CCSA_X6
-MediaManager: Found 8 media files.
-MediaManager: Load complete. Library size: 8
-DEBUG SDLWrapper: Halting music.
-DEBUG SDLWrapper: musicFinishedCallback() triggered.
-MediaPlayer: Track finished.
-MediaPlayer: Manual stop detected, ignoring auto-next.
-DEBUG SDLWrapper: Freeing current music resource.
-[USBUtils] ✅ USB safely unmounted: /media/dung20210222/IR5_CCSA_X6
-[AppController] 🧹 MediaManager cleared after eject.
-[USBUtils] ❌ No USB device found.
-[AppController] ❌ No USB detected.
 --- Application Shutting Down ---
 PlaylistManager: Playlists saved to /home/dung20210222/Documents/F/MediaPlayer/playlist/playlists.json
 App: Cleanup complete.
