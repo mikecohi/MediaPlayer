@@ -34,7 +34,10 @@ bool AppController::init() {
     // --- 2. Khởi tạo Model (Phụ thuộc vào Utils) ---
     mediaPlayer = std::make_unique<MediaPlayer>(sdlWrapper.get());
     mediaManager = std::make_unique<MediaManager>(tagLibWrapper.get());
+    usbMediaManager = std::make_unique<MediaManager>(tagLibWrapper.get());
+
     playlistManager = std::make_unique<PlaylistManager>(mediaManager.get());
+    playlistManager->setUSBMediaManager(usbMediaManager.get());
 
     // --- 3. Khởi tạo Controller (Phụ thuộc vào Model) ---
     mediaController = std::make_unique<MediaController>(
@@ -56,7 +59,7 @@ bool AppController::init() {
 }
 
 bool AppController::loadUSBLibrary() {
-    if (!usbUtils || !mediaManager) return false;
+    if (!usbUtils || !usbMediaManager) return false;
 
     currentUSBPath = usbUtils->detectUSBMount();
     if (currentUSBPath.empty()) {
@@ -65,7 +68,13 @@ bool AppController::loadUSBLibrary() {
     }
 
     std::cout << "[AppController] ✅ Loading media from: " << currentUSBPath << std::endl;
-    mediaManager->loadFromDirectory(currentUSBPath);
+    usbMediaManager->loadFromDirectory(currentUSBPath);
+
+    
+    // 🔹 Sau khi load USB, cập nhật lại PlaylistManager
+    if (playlistManager)
+        playlistManager->setUSBMediaManager(usbMediaManager.get());
+        
     return true;
 }
 
@@ -81,12 +90,11 @@ bool AppController::reloadUSBLibrary() {
     }
 
     currentUSBPath = newPath;
-    if (mediaManager) {
-        mediaManager->loadFromDirectory(currentUSBPath);
+    if (usbMediaManager) {
+        usbMediaManager->loadFromDirectory(currentUSBPath);
     }
     return true;
 }
-
 
 bool AppController::ejectUSB() {
     if (!usbUtils) return false;
@@ -96,10 +104,26 @@ bool AppController::ejectUSB() {
         return false;
     }
 
+    // --- 1️⃣ Chỉ dừng phát nếu bài hiện tại nằm trong USB ---
+    if (mediaPlayer) {
+        MediaFile* current = mediaPlayer->getCurrentTrack();
+        if (current) {
+            std::string currentPath = current->getFilePath();
+            // Kiểm tra xem bài đang phát có nằm trong USB mount path hay không
+            if (currentPath.rfind(currentUSBPath, 0) == 0) {
+                std::cout << "[AppController] ⏹ Stopping track from USB before eject.\n";
+                mediaPlayer->stop();
+            } else {
+                std::cout << "[AppController] ▶ Current track not from USB. Continue playing.\n";
+            }
+        }
+    }
+
+    // --- 2️⃣ Thực hiện eject ---
     bool ok = usbUtils->unmountUSB(currentUSBPath);
-    if (ok && mediaManager) {
-        mediaManager->clearLibrary(); // 🔹 clear current data
-        std::cout << "[AppController] 🧹 MediaManager cleared after eject.\n";
+    if (ok && usbMediaManager) {
+        usbMediaManager->clearLibrary(); // 🔹 clear current data
+        std::cout << "[AppController] 🧹 USB MediaManager cleared after eject.\n";
     }
     currentUSBPath.clear();
     return ok;
@@ -113,3 +137,4 @@ PlaylistManager* AppController::getPlaylistManager() const { return playlistMana
 MediaPlayer* AppController::getMediaPlayer() const { return mediaPlayer.get(); }
 MediaController* AppController::getMediaController() const { return mediaController.get(); }
 PlaylistController* AppController::getPlaylistController() const { return playlistController.get(); }
+MediaManager* AppController::getUSBMediaManager() const {return usbMediaManager.get(); }

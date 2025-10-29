@@ -15,6 +15,7 @@ private:
     // The manager owns all Playlist objects via smart pointers
     std::vector<std::unique_ptr<Playlist>> playlists;
     MediaManager* mediaManager;
+    MediaManager* usbMediaManager;
     std::string savePath_;
 public:
     explicit PlaylistManager(MediaManager* manager);
@@ -28,4 +29,5 @@ public:
     void saveToFile(const std::string& filename = "");
     void loadFromFile(const std::string& filename);
     void autoSave();
+    void setUSBMediaManager(MediaManager* usbManager);
 };

@@ -147,24 +147,14 @@ void UIManager::handleInput(InputEvent event) {
      else if (event.type == InputEvent::KEYBOARD) {
         if (event.key == 9) { // Tab key
             // ... (Tab focus logic) ...
-             if (currentFocus == FocusArea::SIDEBAR) currentFocus = FocusArea::MAIN_LIST; 
-             else if (currentFocus == FocusArea::MAIN_LIST) currentFocus = FocusArea::MAIN_DETAIL; 
-             else if (currentFocus == FocusArea::MAIN_DETAIL) currentFocus = FocusArea::BOTTOM_BAR; 
-             else if (currentFocus == FocusArea::BOTTOM_BAR) currentFocus = FocusArea::SIDEBAR;
+             if (currentFocus == FocusArea::SIDEBAR) currentFocus = FocusArea::MAIN_LIST; else if (currentFocus == FocusArea::MAIN_LIST) currentFocus = FocusArea::MAIN_DETAIL; else if (currentFocus == FocusArea::MAIN_DETAIL) currentFocus = FocusArea::BOTTOM_BAR; else if (currentFocus == FocusArea::BOTTOM_BAR) currentFocus = FocusArea::SIDEBAR;
             needsRedrawSidebar = true; needsRedrawMain = true;
             return;
         }
 
         switch (currentFocus) {
             case FocusArea::SIDEBAR:
-                if (sidebarView) 
-                { /* ... Sidebar key handling ... */ 
-                    AppMode oldM=currentMode; 
-                    AppMode newM=sidebarView->handleInput(event); 
-                    if(newM != oldM) switchMainView(newM); 
-                    if(sidebarView->shouldExit()) isRunning=false; 
-                    needsRedrawSidebar=true; 
-                }
+                if (sidebarView) { /* ... Sidebar key handling ... */ AppMode oldM=currentMode; AppMode newM=sidebarView->handleInput(event); if(newM != oldM) switchMainView(newM); if(sidebarView->shouldExit()) isRunning=false; needsRedrawSidebar=true; }
                 break;
 
             case FocusArea::MAIN_LIST:
@@ -173,27 +163,28 @@ void UIManager::handleInput(InputEvent event) {
                      needsRedrawMain = true;
                  }
                  // Special handling for Enter key to play
-                 if (event.key == 10) 
-                 { 
-                    /* ... Play track logic ... */ 
+                 if (event.key == 10) { /* ... Play track logic ... */ 
                     MediaFile* sf=nullptr; 
-                    if(currentMode==AppMode::FILE_BROWSER||currentMode==AppMode::USB_BROWSER)
-                    {
+                    if(currentMode==AppMode::FILE_BROWSER){
                         MainFileView* fv=dynamic_cast<MainFileView*>(mainAreaView.get());
-                         if(fv) 
-                            sf=fv->getSelectedFile();
-                        }
-                          else if(currentMode==AppMode::PLAYLISTS)
-                          {
-                            MainPlaylistView* pv=dynamic_cast<MainPlaylistView*>(mainAreaView.get());
-                            if(pv) sf=pv->getSelectedTrack();
-                            } 
-                            if(sf&&appController&&appController->getMediaController())
-                             {
-                                appController->getMediaController()->playTrack(sf);
-                            } 
-                            else
-                            {if(ui)flash();}
+                        if(fv) {
+                            sf=fv->getSelectedFile();}
+                    }
+                    else if(currentMode==AppMode::USB_BROWSER){
+                        MainUSBView* uv=dynamic_cast<MainUSBView*>(mainAreaView.get());
+                        if(uv) {
+                            sf=uv->getSelectedFile();}
+                    }
+                     else if(currentMode==AppMode::PLAYLISTS){
+                        MainPlaylistView* pv=dynamic_cast<MainPlaylistView*>(mainAreaView.get()); 
+                        if(pv) sf=pv->getSelectedTrack();
+                    } 
+                    if(sf&&appController&&appController->getMediaController()){
+                        appController->getMediaController()->playTrack(sf);
+                    } 
+                 else{
+                    if(ui)flash();
+                }
                 }
                  break;
 
@@ -224,7 +215,25 @@ void UIManager::handleInput(InputEvent event) {
         case MainAreaAction::CREATE_PLAYLIST: showCreatePlaylistPopup(); break;
         case MainAreaAction::DELETE_PLAYLIST: { /* ... Delete logic ... */ Playlist* sp=nullptr; if(currentMode==AppMode::PLAYLISTS){MainPlaylistView* pv=dynamic_cast<MainPlaylistView*>(mainAreaView.get()); if(pv) sp=pv->getSelectedPlaylist();} if(sp&&appController&&appController->getPlaylistController()){bool d=appController->getPlaylistController()->deletePlaylist(sp->getName()); if(d)needsRedrawMain=true; else flash();} else flash();} break;
         case MainAreaAction::REMOVE_TRACK_FROM_PLAYLIST: { /* ... Remove logic ... */ MediaFile* st=nullptr; Playlist* cp=nullptr; if(currentMode==AppMode::PLAYLISTS){MainPlaylistView* pv=dynamic_cast<MainPlaylistView*>(mainAreaView.get()); if(pv){st=pv->getSelectedTrack(); cp=pv->getSelectedPlaylist();}} if(st&&cp&&appController&&appController->getPlaylistController()){bool r=appController->getPlaylistController()->removeTrackFromPlaylist(st,cp); if(r)needsRedrawMain=true; else flash();} else flash();} break;
-        case MainAreaAction::ADD_TRACK_TO_PLAYLIST: { /* ... Add logic ... */ MediaFile* sf=nullptr; if(currentMode==AppMode::FILE_BROWSER||currentMode==AppMode::USB_BROWSER){MainFileView* fv=dynamic_cast<MainFileView*>(mainAreaView.get()); if(fv) sf=fv->getSelectedFile();} if(sf){showAddToPlaylistPopup(sf);} else flash();} break;
+        case MainAreaAction::ADD_TRACK_TO_PLAYLIST: 
+        {
+            MediaFile* sf = nullptr; 
+
+            if (currentMode == AppMode::FILE_BROWSER) {
+                if (auto* fv = dynamic_cast<MainFileView*>(mainAreaView.get()))
+                    sf = fv->getSelectedFile();
+            } 
+            else if (currentMode == AppMode::USB_BROWSER) {
+                if (auto* uv = dynamic_cast<MainUSBView*>(mainAreaView.get()))
+                    sf = uv->getSelectedFile();
+            }
+
+            if (sf)
+                showAddToPlaylistPopup(sf);
+            else
+                flash();
+        }
+        break;
         case MainAreaAction::EDIT_METADATA: {
                 if (currentMode != AppMode::FILE_BROWSER && currentMode != AppMode::USB_BROWSER) break;
                 auto fileView = dynamic_cast<MainFileView*>(mainAreaView.get());

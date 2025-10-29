@@ -1,7 +1,11 @@
 [
     {
         "name": "Test Playlist 1",
-        "tracks": []
+        "tracks": [
+            "/home/dung20210222/Documents/F/MediaPlayer/test_media/media/KPOP/FaSHioN.mp3",
+            "/home/dung20210222/Documents/F/MediaPlayer/test_media/media/KPOP/Crazy Form.mp3",
+            "/media/dung20210222/IR5_CCSA_X6/music/Anh Đã Ổn Hơn.mp3"
+        ]
     },
     {
         "name": "mai1",
