@@ -4,27 +4,35 @@
 #include "view/UIManager.h"
 #include "controller/AppController.h"
 #include <iostream>
-#include <fstream> 
+#include <fstream>
 #include <filesystem>
+#include <unistd.h>    // for getlogin()
+#include <cstdlib>     // for getenv()
 
-#include "model/MediaManager.h" 
+#include "model/MediaManager.h"
 #include "model/PlaylistManager.h"
 
 namespace fs = std::filesystem;
 
-const std::string PLAYLIST_FILENAME = "playlist/playlists.json";
-const std::string MEDIA_PATH = "test_media";
-
 App::App() {}
-
 App::~App() {
-    // if (appController && appController->getPlaylistManager()) {
-    //     fs::path rootPath = FileUtils::getProjectRootPath();
-    //     fs::path playlistPath = rootPath / PLAYLIST_FILENAME;
-    //     appController->getPlaylistManager()->saveToFile(playlistPath.string());
-    // }
     std::cout << "App: Cleanup complete." << std::endl;
-    // unique_ptrs handle cleanup of uiManager, appController, ui
+}
+
+/**
+ * @brief Lấy thư mục Music của người dùng để chứa media và playlist
+ * @return fs::path dạng /home/<user>/Music/MediaPlayer/
+ */
+static fs::path getUserMusicRoot() {
+    const char* home = getenv("HOME");
+    if (!home) home = getlogin();
+    fs::path root = fs::path(home) / "Music" / "MediaPlayer";
+
+    // Tạo thư mục nếu chưa có
+    fs::create_directories(root / "test_media");
+    fs::create_directories(root / "playlist");
+
+    return root;
 }
 
 bool App::init() {
@@ -46,24 +54,16 @@ bool App::init() {
         return false;
     }
 
-    fs::path rootPath = FileUtils::getProjectRootPath();
-    fs::path mediaPath = rootPath / MEDIA_PATH;
+    // 🔹 Lấy đường dẫn thư mục media/playlist của người dùng
+    fs::path userRoot = getUserMusicRoot();
+    fs::path mediaPath = userRoot / "test_media";
+    fs::path playlistPath = userRoot / "playlist" / "playlists.json";
 
-    // --- 1️⃣ LOAD MEDIA TRONG THƯ MỤC CỤC BỘ ---
-    std::cout << "App: Loading initial media from " << mediaPath.string() << " ..." << std::endl;
+    // --- 1️⃣ LOAD MEDIA NGƯỜI DÙNG ---
+    std::cout << "App: Loading user media from " << mediaPath << " ..." << std::endl;
     appController->getMediaManager()->loadFromDirectory(mediaPath.string());
 
-    // --- LOGGING ---
-    if (appController && appController->getMediaManager()) {
-        int count = appController->getMediaManager()->getTotalFileCount();
-        std::cout << "DEBUG App::init: MediaManager reports "
-                  << count << " files AFTER loading from " << mediaPath.string() << "." << std::endl;
-    } else {
-        std::cout << "DEBUG App::init: AppController or MediaManager is NULL!" << std::endl;
-    }
-    std::cout << "App: Media loading complete." << std::endl;
-
-    // --- 2️⃣ LOAD USB MEDIA (NẾU CÓ) TRƯỚC KHI LOAD PLAYLIST ---
+    // --- 2️⃣ LOAD USB MEDIA (NẾU CÓ) ---
     std::cout << "App: Checking for USB media..." << std::endl;
     if (appController->loadUSBLibrary()) {
         int usbCount = appController->getUSBMediaManager()->getTotalFileCount();
@@ -72,10 +72,9 @@ bool App::init() {
         std::cout << "App: No USB media detected or failed to load." << std::endl;
     }
 
-    // --- 3️⃣ LOAD PLAYLIST SAU KHI CẢ HAI MEDIA MANAGER ĐÃ SẴN SÀNG ---
-    fs::path playlistPath = rootPath / PLAYLIST_FILENAME;
+    // --- 3️⃣ LOAD PLAYLIST ---
     if (appController && appController->getPlaylistManager()) {
-        std::cout << "App: Loading playlists from " << playlistPath.string() << "..." << std::endl;
+        std::cout << "App: Loading playlists from " << playlistPath << "..." << std::endl;
         appController->getPlaylistManager()->loadFromFile(playlistPath.string());
     }
 
@@ -83,7 +82,5 @@ bool App::init() {
 }
 
 void App::run() {
-    if (uiManager) {
-        uiManager->run();
-    }
+    if (uiManager) uiManager->run();
 }

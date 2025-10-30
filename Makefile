@@ -1,104 +1,117 @@
 # =====================================================
-# MediaPlayer - Makefile
+# MediaPlayer - Full Makefile
 # =====================================================
 
+# --- Compiler setup ---
 CXX := g++
+SHELL := /bin/bash
+CXXFLAGS := -std=c++17 -Wall -g \
+    -I./src -I./src/external \
+    $(shell pkg-config --cflags ncursesw sdl2 SDL2_mixer taglib)
+LDFLAGS := $(shell pkg-config --libs ncursesw sdl2 SDL2_mixer taglib)
 
-# Compiler and Linker flags managed by pkg-config
-# Requires: libncurses-dev, libsdl2-dev, libsdl2-mixer-dev, libtag1-dev
-CXXFLAGS := -std=c++17 -Wall -g -I./src -I./src/external/ $(shell pkg-config --cflags ncursesw sdl2 taglib)
-LDFLAGS := $(shell pkg-config --libs ncursesw sdl2 taglib SDL2_mixer)
-
-# Project directories
+# --- Directory layout ---
 SRC_DIR := src
 OBJ_DIR := obj
 BIN_DIR := bin
 TEST_DIR := $(SRC_DIR)/tests
+INSTALL_DIR := /usr/local/bin
 
-# ---------------------------------------
-# Collect sources and objects for the main app
-# (Excludes test files)
-# ---------------------------------------
-SRCS := $(shell find $(SRC_DIR) -type f -name "*.cpp" ! -path "$(TEST_DIR)/*")
-OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRCS))
-
-# Auto-generate dependency files (.d)
-DEPS := $(OBJS:.o=.d)
-
-# Main application executable
+# --- Main target ---
 TARGET := $(BIN_DIR)/mediaplayer
 
-# =======================================
-# TARGETS
-# =======================================
+# =====================================================
+# Collect source and object files
+# =====================================================
+SRCS := $(shell find $(SRC_DIR) -type f -name "*.cpp" ! -path "$(TEST_DIR)/*")
+OBJS := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRCS))
+DEPS := $(OBJS:.o=.d)
 
-.PHONY: all test clean run
+# =====================================================
+# Default target
+# =====================================================
+.PHONY: all build run test install uninstall clean rebuild
 
-# Default target: build the main application
+# -----------------------------------------------------
+# Build main executable
+# -----------------------------------------------------
 all: $(TARGET)
 
+build: $(TARGET)
+
 $(TARGET): $(OBJS) | $(BIN_DIR)
+	@echo "🔧 Linking $(TARGET)..."
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 	@echo "✅ Build complete: $(TARGET)"
 
-# ---------------------------------------
-# Target to RUN the application
-# ---------------------------------------
-run: $(TARGET)
-	@echo "🚀 Running application..."
-	@./$(TARGET) 
-	
-# ---------------------------------------
-# Unit test target
-# ---------------------------------------
-TEST_SRCS := $(wildcard $(TEST_DIR)/*.cpp)
-TEST_BINS := $(patsubst $(TEST_DIR)/%.cpp, $(BIN_DIR)/%.out, $(TEST_SRCS))
-
-# Build and run all available unit tests
-test: $(TEST_BINS)
-	@echo "🧪 Running all unit tests..."
-	@for t in $(TEST_BINS); do \
-		if grep -q "int main" $$(echo $$t | sed 's|$(BIN_DIR)|$(TEST_DIR)|;s|.out|.cpp|'); then \
-			echo "▶ Running $$t..."; \
-			./$$t || exit 1; \
-		else \
-			echo "⚠️ Skipping $$t (no main)"; \
-		fi; \
-	done
-	@echo "✅ All available tests executed!"
-
-# Rule to build each test executable
-# Skips building if 'int main' is not found
-$(BIN_DIR)/%.out: $(TEST_DIR)/%.cpp $(filter-out $(OBJ_DIR)/main.o, $(OBJS)) | $(BIN_DIR)
-	@if grep -q "int main" $<; then \
-		echo "🔧 Building test: $<"; \
-		$(CXX) $(CXXFLAGS) $(filter-out $(OBJ_DIR)/main.o, $(OBJS)) $< -o $@ $(LDFLAGS); \
-	else \
-		echo "⚠️ Skipping $< (no main)"; \
-	fi
-
-# ---------------------------------------
-# Generic rule to build object files
-# -MMD -MP flags create dependency files
-# ---------------------------------------
+# -----------------------------------------------------
+# Object file compilation with dependency tracking
+# -----------------------------------------------------
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -MMD -MP -c $< -o $@
 
-# ---------------------------------------
-# Folder creation
-# ---------------------------------------
-$(BIN_DIR) $(OBJ_DIR):
+# -----------------------------------------------------
+# Directory creation rules
+# -----------------------------------------------------
+$(OBJ_DIR) $(BIN_DIR):
 	@mkdir -p $@
 
-# ---------------------------------------
-# Clean build files
-# ---------------------------------------
-clean:
-	@echo "🧹 Cleaning build files..."
-	@rm -rf $(OBJ_DIR) $(BIN_DIR)
+# =====================================================
+# Run the main app
+# =====================================================
+run: $(TARGET)
+	@echo "🚀 Starting MediaPlayer..."
+	@./$(TARGET)
 
-# ---------------------------------------
-# Include auto-generated dependencies
-# ---------------------------------------
+# =====================================================
+# Unit Tests
+# =====================================================
+TEST_SRCS := $(wildcard $(TEST_DIR)/*.cpp)
+TEST_BINS := $(patsubst $(TEST_DIR)/%.cpp,$(BIN_DIR)/%.out,$(TEST_SRCS))
+
+test: $(TEST_BINS)
+	@echo "🧪 Running all available tests..."
+	@for t in $(TEST_BINS); do \
+		echo "▶ Running $$t..."; \
+		./$$t || exit 1; \
+	done
+	@echo "✅ All tests completed successfully!"
+
+$(BIN_DIR)/%.out: $(TEST_DIR)/%.cpp $(filter-out $(OBJ_DIR)/main.o,$(OBJS)) | $(BIN_DIR)
+	@echo "🔧 Building test: $<"
+	$(CXX) $(CXXFLAGS) $(filter-out $(OBJ_DIR)/main.o,$(OBJS)) $< -o $@ $(LDFLAGS)
+
+# =====================================================
+# Installation / Uninstallation
+# =====================================================
+install: $(TARGET)
+	@echo "🔐 Installing requires administrator privileges..."
+	sudo install -m 755 $(TARGET) $(INSTALL_DIR)/mediaplayer
+	@echo "✅ Installed binary to $(INSTALL_DIR)/mediaplayer"
+
+	@echo "🎵 Setting up user Music folders..."
+	mkdir -p $$HOME/Music/MediaPlayer/test_media
+	mkdir -p $$HOME/Music/MediaPlayer/playlist
+	@echo "✅ User media folders ready at $$HOME/Music/MediaPlayer/"
+
+uninstall:
+	@echo "🗑️  Removing mediaplayer from $(INSTALL_DIR)..."
+	sudo rm -f $(INSTALL_DIR)/mediaplayer
+	@echo "✅ Uninstalled."
+
+# =====================================================
+# Clean & Rebuild
+# =====================================================
+clean:
+	@echo "🧹 Cleaning object and binary files..."
+	@rm -rf $(OBJ_DIR) $(BIN_DIR)
+	@echo "✅ Clean done."
+
+rebuild: clean all
+	@echo "🔁 Rebuild complete."
+
+# =====================================================
+# Include dependency files
+# =====================================================
 -include $(DEPS)
