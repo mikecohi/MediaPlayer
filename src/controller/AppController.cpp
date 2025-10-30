@@ -46,15 +46,31 @@ bool AppController::init() {
         tagLibWrapper.get(), 
         deviceConnector.get()
     );
+
+    usbmediaController = std::make_unique<MediaController>(
+        usbMediaManager.get(), 
+        mediaPlayer.get(), 
+        tagLibWrapper.get(), 
+        deviceConnector.get()
+    );
     playlistController = std::make_unique<PlaylistController>(playlistManager.get());
 
-    mediaPlayer->setOnTrackFinishedCallback([this]() {
-        // [this] capture con trỏ AppController
-        // Chúng ta cần kiểm tra mediaController tồn tại trước khi gọi
-        if (this->mediaController) {
+mediaPlayer->setOnTrackFinishedCallback([this]() {
+    if (!this->mediaPlayer) return;
+    MediaFile* current = this->mediaPlayer->getCurrentTrack();
+    if (!current) return;
+
+    // Nếu đường dẫn nằm trong USB
+    if (!this->currentUSBPath.empty() &&
+        current->getFilePath().rfind(this->currentUSBPath, 0) == 0) {
+        if (this->usbmediaController)
+            this->usbmediaController->nextTrack();
+    } else {
+        if (this->mediaController)
             this->mediaController->nextTrack();
-        }
-    });
+    }
+});
+
     return true;
 }
 
@@ -69,6 +85,12 @@ bool AppController::loadUSBLibrary() {
 
     std::cout << "[AppController] ✅ Loading media from: " << currentUSBPath << std::endl;
     usbMediaManager->loadFromDirectory(currentUSBPath);
+    usbmediaController = std::make_unique<MediaController>(
+        usbMediaManager.get(),
+        mediaPlayer.get(),
+        tagLibWrapper.get(),
+        deviceConnector.get()
+    );
 
     
     // 🔹 Sau khi load USB, cập nhật lại PlaylistManager
@@ -151,3 +173,4 @@ MediaPlayer* AppController::getMediaPlayer() const { return mediaPlayer.get(); }
 MediaController* AppController::getMediaController() const { return mediaController.get(); }
 PlaylistController* AppController::getPlaylistController() const { return playlistController.get(); }
 MediaManager* AppController::getUSBMediaManager() const {return usbMediaManager.get(); }
+MediaController* AppController::getusbmediaController() const { return usbmediaController.get(); }

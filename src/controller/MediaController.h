@@ -39,13 +39,13 @@ public:
     void previousTrack();
     void increaseVolume(int amount = 5); // Increase by a step
     void decreaseVolume(int amount = 5); // Decrease by a step
-
+    void setUSBMediaManager(MediaManager* usbMgr);
     // --- Methods called from S32K144 (Device Input) ---
     void onDevicePlayPause();
     void onDeviceNext();
     void onDevicePrevious();
     void onDeviceVolumeChange(int adcValue); // Raw value from ADC
-
+    // void setUSBMediaManager(MediaManager* mgr);
     void playPlaylist(Playlist* playlist, int startIndex = 0);
 private:
     /**
@@ -53,7 +53,7 @@ private:
      * @param file The file that just started playing.
      */
     void sendSongInfoToDevice(MediaFile* file);
-
+    
     /**
      * @brief Converts the raw ADC value to a 0-100 volume scale.
      */
@@ -61,6 +61,7 @@ private:
 
     // Non-owning pointers to models and utilities
     MediaManager* mediaManager;
+    MediaManager* usbMediaManager = nullptr;  // thêm dòng này
     MediaPlayer* mediaPlayer;
     MediaFile* findAdjacentTrack(int offset); 
     TagLibWrapper* tagUtil;

@@ -216,6 +216,36 @@ void MediaController::previousTrack() {
         // Optional: Stop playback or restart current? mediaPlayer->stop();
     }
 }
+// void MediaController::nextTrack() {
+//     if (!player) return;
+//     MediaFile* current = player->getCurrentTrack();
+//     if (!current) return;
+
+//     MediaManager* activeManager = nullptr;
+//     if (usbMediaManager && current->getFilePath().rfind(appController->getCurrentUSBPath(), 0) == 0)
+//         activeManager = usbMediaManager;
+//     else
+//         activeManager = mediaManager;
+
+//     MediaFile* next = activeManager->getNextFile(current);
+//     if (next) player->play(next);
+// }
+
+// void MediaController::previousTrack() {
+//     if (!player) return;
+//     MediaFile* current = player->getCurrentTrack();
+//     if (!current) return;
+
+//     MediaManager* activeManager = nullptr;
+//     if (usbMediaManager && current->getFilePath().rfind(appController->getCurrentUSBPath(), 0) == 0)
+//         activeManager = usbMediaManager;
+//     else
+//         activeManager = mediaManager;
+
+//     MediaFile* prev = activeManager->getPrevFile(current);
+//     if (prev) player->play(prev);
+// }
+
 
 void MediaController::increaseVolume(int amount) {
     std::cout << "MediaController: increaseVolume called." << std::endl;
@@ -291,3 +321,5 @@ void MediaController::onDeviceVolumeChange(int adcValue) { std::cout << "MediaCo
 // (Giữ nguyên skeleton)
 void MediaController::sendSongInfoToDevice(MediaFile* file) {}
 int MediaController::convertAdcToVolume(int adcValue) { return 50; }
+
+void MediaController::setUSBMediaManager(MediaManager* usbMgr) { usbMediaManager = usbMgr; }

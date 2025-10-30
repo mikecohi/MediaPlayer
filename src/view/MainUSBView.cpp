@@ -92,6 +92,8 @@ void MainUSBView::draw(FocusArea focus) {
     std::string pageInfo = "Page " + std::to_string(filePage) + "/" + std::to_string(totalPages);
     std::string prevLabel = "[< Prev]";
     std::string nextLabel = "[Next >]";
+    prevBtnW = prevLabel.size();
+    nextBtnW = nextLabel.size();
     prevBtnY = 2; prevBtnX = 3;
     nextBtnY = 2; nextBtnX = listWidth - nextLabel.size() - 2;
     mvwprintw(win, prevBtnY, prevBtnX, "%s", prevLabel.c_str());

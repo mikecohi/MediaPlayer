@@ -59,8 +59,8 @@ bool UIManager::init() {
 
     if (!topWin || !sidebarWin || !mainWin || !bottomWin) return false;
 
-    // Khởi tạo các view
-    topBarView = std::make_unique<TopBarView>(ui, topWin, "🎵 MY MEDIA PLAYER 🎵");
+    // Khởi tạo các view 
+    topBarView = std::make_unique<TopBarView>(ui, topWin, "🎵      OUR MEDIA PLAYER     🎵");
     sidebarView = std::make_unique<SidebarView>(ui, sidebarWin);
     bottomBarView = std::make_unique<BottomBarView>(ui, appController->getMediaPlayer(), bottomWin);
     switchMainView(AppMode::FILE_BROWSER);
@@ -214,8 +214,44 @@ void UIManager::handleInput(InputEvent event) {
     switch (mainAction) 
     {
         case MainAreaAction::CREATE_PLAYLIST: showCreatePlaylistPopup(); break;
-        case MainAreaAction::DELETE_PLAYLIST: { /* ... Delete logic ... */ Playlist* sp=nullptr; if(currentMode==AppMode::PLAYLISTS){MainPlaylistView* pv=dynamic_cast<MainPlaylistView*>(mainAreaView.get()); if(pv) sp=pv->getSelectedPlaylist();} if(sp&&appController&&appController->getPlaylistController()){bool d=appController->getPlaylistController()->deletePlaylist(sp->getName()); if(d)needsRedrawMain=true; else flash();} else flash();} break;
-        case MainAreaAction::REMOVE_TRACK_FROM_PLAYLIST: { /* ... Remove logic ... */ MediaFile* st=nullptr; Playlist* cp=nullptr; if(currentMode==AppMode::PLAYLISTS){MainPlaylistView* pv=dynamic_cast<MainPlaylistView*>(mainAreaView.get()); if(pv){st=pv->getSelectedTrack(); cp=pv->getSelectedPlaylist();}} if(st&&cp&&appController&&appController->getPlaylistController()){bool r=appController->getPlaylistController()->removeTrackFromPlaylist(st,cp); if(r)needsRedrawMain=true; else flash();} else flash();} break;
+        case MainAreaAction::DELETE_PLAYLIST: 
+        { 
+            /* ... Delete logic ... */ 
+            Playlist* sp=nullptr; 
+            if(currentMode==AppMode::PLAYLISTS)
+            {
+                MainPlaylistView* pv=dynamic_cast<MainPlaylistView*>(mainAreaView.get()); 
+                if(pv) sp=pv->getSelectedPlaylist();
+            } 
+            if(sp&&appController&&appController->getPlaylistController())
+            {
+                bool d=appController->getPlaylistController()->deletePlaylist(sp->getName()); 
+                if(d)needsRedrawMain=true; else flash();
+            } 
+            else 
+            flash();
+        } 
+        break;
+        case MainAreaAction::REMOVE_TRACK_FROM_PLAYLIST: 
+        { 
+            /* ... Remove logic ... */ 
+            MediaFile* st=nullptr; 
+            Playlist* cp=nullptr; 
+            if(currentMode==AppMode::PLAYLISTS)
+            {
+                MainPlaylistView* pv=dynamic_cast<MainPlaylistView*>(mainAreaView.get()); 
+                if(pv){st=pv->getSelectedTrack(); 
+                    cp=pv->getSelectedPlaylist();
+                }
+            } 
+            if(st&&cp&&appController&&appController->getPlaylistController())
+            {
+                bool r=appController->getPlaylistController()->removeTrackFromPlaylist(st,cp); 
+                if(r)needsRedrawMain=true; 
+                else flash();
+            } 
+            else  flash();
+        } break;
         case MainAreaAction::ADD_TRACK_TO_PLAYLIST: 
         {
             MediaFile* sf = nullptr; 
@@ -293,18 +329,52 @@ void UIManager::handleInput(InputEvent event) {
     }
 
     // Then Handle Bottom Bar Actions
-    if (bottomAction != BottomBarAction::NONE && appController && appController->getMediaController()) {
-        MediaController* mc = appController->getMediaController();
-        switch (bottomAction) {
-            case BottomBarAction::TOGGLE_PLAY_PAUSE: mc->pauseOrResume(); break;
-            case BottomBarAction::NEXT_TRACK: mc->nextTrack(); break;
-            case BottomBarAction::PREV_TRACK: mc->previousTrack(); break;
-            case BottomBarAction::VOLUME_UP: mc->increaseVolume(); break;
-            case BottomBarAction::VOLUME_DOWN: mc->decreaseVolume(); break;
-            case BottomBarAction::NONE: default: break; // Should not happen here
+    if(currentMode == AppMode::FILE_BROWSER)
+    {
+        if (bottomAction != BottomBarAction::NONE && appController && appController->getMediaController()) {
+            MediaController* mc = appController->getMediaController();
+            switch (bottomAction) {
+                case BottomBarAction::TOGGLE_PLAY_PAUSE: mc->pauseOrResume(); break;
+                case BottomBarAction::NEXT_TRACK: mc->nextTrack(); break;
+                case BottomBarAction::PREV_TRACK: mc->previousTrack(); break;
+                case BottomBarAction::VOLUME_UP: mc->increaseVolume(); break;
+                case BottomBarAction::VOLUME_DOWN: mc->decreaseVolume(); break;
+                case BottomBarAction::NONE: default: break; // Should not happen here
         }
         // No redraw flags needed here, BottomBar redraws automatically anyway
     }
+    }
+    else if (currentMode == AppMode::USB_BROWSER)
+    {
+    if (bottomAction != BottomBarAction::NONE && appController && appController->getusbmediaController()) {
+            MediaController* mc = appController->getusbmediaController();
+            switch (bottomAction) {
+                case BottomBarAction::TOGGLE_PLAY_PAUSE: mc->pauseOrResume(); break;
+                case BottomBarAction::NEXT_TRACK: mc->nextTrack(); break;
+                case BottomBarAction::PREV_TRACK: mc->previousTrack(); break;
+                case BottomBarAction::VOLUME_UP: mc->increaseVolume(); break;
+                case BottomBarAction::VOLUME_DOWN: mc->decreaseVolume(); break;
+                case BottomBarAction::NONE: default: break; // Should not happen here
+            }
+            // No redraw flags needed here, BottomBar redraws automatically anyway
+        }
+    }
+    else if (currentMode == AppMode::PLAYLISTS)
+    {
+    if (bottomAction != BottomBarAction::NONE && appController && appController->getusbmediaController()) {
+            MediaController* mc = appController->getusbmediaController();
+            switch (bottomAction) {
+                case BottomBarAction::TOGGLE_PLAY_PAUSE: mc->pauseOrResume(); break;
+                case BottomBarAction::NEXT_TRACK: mc->nextTrack(); break;
+                case BottomBarAction::PREV_TRACK: mc->previousTrack(); break;
+                case BottomBarAction::VOLUME_UP: mc->increaseVolume(); break;
+                case BottomBarAction::VOLUME_DOWN: mc->decreaseVolume(); break;
+                case BottomBarAction::NONE: default: break; // Should not happen here
+            }
+            // No redraw flags needed here, BottomBar redraws automatically anyway
+        }
+    }
+
 
 
      // Redraw if focus changed

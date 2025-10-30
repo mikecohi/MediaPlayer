@@ -199,11 +199,11 @@ MainAreaAction MainPlaylistView::handleInput(InputEvent event, FocusArea focus) 
         }
 
         // --- Button Activation ---
-        if (event.key == 10) { // Enter - Activate [Delete]
-             if (playlistCount > 0 && playlistSelected >= 0) return MainAreaAction::DELETE_PLAYLIST;
-        }
+        // if (event.key == 10) { // Enter - Activate [Delete]
+        //      if (playlistCount > 0 && playlistSelected >= 0) return MainAreaAction::DELETE_PLAYLIST;
+        // }
         if (event.key == 'c') return MainAreaAction::CREATE_PLAYLIST;
-        if (event.key == 'd' && playlistCount > 0 && playlistSelected >= 0) return MainAreaAction::DELETE_PLAYLIST;
+        //if (event.key == 'd' && playlistCount > 0 && playlistSelected >= 0) return MainAreaAction::DELETE_PLAYLIST;
 
     } else if (focus == FocusArea::MAIN_DETAIL) {
         if (trackCount > 0) {
