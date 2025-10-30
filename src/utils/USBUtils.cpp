@@ -68,7 +68,7 @@ std::string USBUtils::detectWSLUSBDrive() {
 
 std::string USBUtils::detectUSBMount() {
     if (isRunningOnWSL()) {
-        std::string mountPath = "/home/dung20210222/F/MediaPlayer/usb";
+        std::string mountPath = "usb";
 
         // Tạo thư mục mount nếu chưa có
         // if (!fs::exists(mountPath)) {
