@@ -4,7 +4,7 @@
 #include "utils/SDLWrapper.h"
 #include "utils/DeviceConnector.h"
 #include "utils/USBUtils.h"
-
+#include "utils/FileUtils.h"
 #include "model/MediaManager.h"
 #include "model/PlaylistManager.h"
 #include "model/MediaPlayer.h"
@@ -77,6 +77,12 @@ bool AppController::loadUSBLibrary() {
     // if (playlistManager)
     // playlistManager->refreshTracksAfterReload();
     
+        if (playlistManager) {
+        fs::path root = FileUtils::getProjectRootPath();
+        fs::path playlistPath = root / "playlist/playlists.json";
+        std::cout << "[AppController] 🔁 Reloading playlists after USB mount...\n";
+        playlistManager->loadFromFile(playlistPath.string());
+    }
     return true;
 }
 
@@ -112,14 +118,22 @@ bool AppController::ejectUSB() {
         }
     }
 
-    // Dọn dẹp bộ nhớ và playlist
-    if (usbMediaManager) usbMediaManager->clearLibrary();
-    //if (playlistManager) playlistManager->removeTracksFromPathPrefix(currentUSBPath);
-
-    // Gỡ mount an toàn
     bool ok = usbUtils->unmountUSB(currentUSBPath);
-    if (ok)
-        std::cout << "[AppController] ✅ USB unmounted safely.\n";
+    // Dọn dẹp bộ nhớ và playlist
+
+    
+    if (ok && usbMediaManager)
+    {
+        usbMediaManager->clearLibrary();
+         std::cout << "[AppController] ✅ USB unmounted safely.\n";
+                 if (playlistManager) {
+            fs::path root = FileUtils::getProjectRootPath();
+            fs::path playlistPath = root / "playlist/playlists.json";
+            std::cout << "[AppController] 🔁 Reloading playlists after USB eject...\n";
+            playlistManager->loadFromFile(playlistPath.string());
+        }
+    }
+       
     else
         std::cerr << "[AppController] ⚠️ Failed to unmount USB.\n";
 

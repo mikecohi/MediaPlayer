@@ -7,7 +7,8 @@ obj/view/UIManager.o: src/view/UIManager.cpp src/view/UIManager.h \
  src/controller/PlaylistController.h src/model/PlaylistManager.h \
  src/model/Playlist.h src/view/SidebarView.h src/view/BottomBarView.h \
  src/view/MainFileView.h src/view/IMainAreaView.h \
- src/view/MainPlaylistView.h src/view/PopupView.h src/view/MainUSBView.h
+ src/view/MainPlaylistView.h src/view/PopupView.h src/view/TopBarView.h \
+ src/view/MainUSBView.h
 src/view/UIManager.h:
 src/utils/NcursesUI.h:
 src/controller/AppController.h:
@@ -30,4 +31,5 @@ src/view/MainFileView.h:
 src/view/IMainAreaView.h:
 src/view/MainPlaylistView.h:
 src/view/PopupView.h:
+src/view/TopBarView.h:
 src/view/MainUSBView.h:

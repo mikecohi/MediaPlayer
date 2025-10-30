@@ -12,13 +12,79 @@ MediaManager: Load complete. Library size: 13
 DEBUG App::init: MediaManager reports 13 files AFTER loading from /home/dung20210222/Documents/F/MediaPlayer/test_media.
 App: Media loading complete.
 App: Checking for USB media...
-[USBUtils] ❌ No USB device found.
-[AppController] ❌ No USB detected.
-App: No USB media detected or failed to load.
+[USBUtils] ✅ Found USB at: "/media/dung20210222/38D0214FD02114A2"
+[AppController] ✅ Loading media from: /media/dung20210222/38D0214FD02114A2
+MediaManager: Loading from directory: /media/dung20210222/38D0214FD02114A2
+MediaManager: Found 1 media files.
+MediaManager: Load complete. Library size: 1
+[AppController] 🔁 Reloading playlists after USB mount...
+PlaylistManager: Playlists loaded successfully from /home/dung20210222/Documents/F/MediaPlayer/playlist/playlists.json
+App: USB media loaded successfully. Found 1 files.
 App: Loading playlists from /home/dung20210222/Documents/F/MediaPlayer/playlist/playlists.json...
+PlaylistManager: Playlists loaded successfully from /home/dung20210222/Documents/F/MediaPlayer/playlist/playlists.json
+MediaController: playTrack called for 1.mp3
+DEBUG SDLWrapper: playAudio requested for: /media/dung20210222/38D0214FD02114A2/1.mp3
+DEBUG SDLWrapper: Loading music with Mix_LoadMUS...
+DEBUG SDLWrapper: Music loaded successfully.
+DEBUG SDLWrapper: Calling Mix_PlayMusic...
+DEBUG SDLWrapper: Mix_PlayMusic call succeeded. Playback started.
+DEBUG SDLWrapper: Halting music.
+DEBUG SDLWrapper: musicFinishedCallback() triggered.
+MediaPlayer: Track finished.
+MediaPlayer: Manual stop detected, ignoring auto-next.
+DEBUG SDLWrapper: Freeing current music resource.
+[USBUtils] ✅ USB safely unmounted: /media/dung20210222/38D0214FD02114A2
+[AppController] ✅ USB unmounted safely.
+[AppController] 🔁 Reloading playlists after USB eject...
 PlaylistManager Warning: Track not found in any library: /media/dung20210222/38D0214FD02114A2/1.mp3
 PlaylistManager: Playlists loaded successfully from /home/dung20210222/Documents/F/MediaPlayer/playlist/playlists.json
+[USBUtils] ❌ No USB device found.
+[AppController] ❌ No USB detected.
+[USBUtils] ✅ Found USB at: "/media/dung20210222/38D0214FD02114A2"
+[AppController] ✅ Loading media from: /media/dung20210222/38D0214FD02114A2
+MediaManager: Loading from directory: /media/dung20210222/38D0214FD02114A2
+MediaManager: Found 1 media files.
+MediaManager: Load complete. Library size: 1
+[AppController] 🔁 Reloading playlists after USB mount...
+PlaylistManager: Playlists loaded successfully from /home/dung20210222/Documents/F/MediaPlayer/playlist/playlists.json
+MediaController: playPlaylist called for 'Test Playlist 1', starting at track 0
+DEBUG SDLWrapper: playAudio requested for: /home/dung20210222/Documents/F/MediaPlayer/test_media/media/KPOP/FaSHioN.mp3
+DEBUG SDLWrapper: Loading music with Mix_LoadMUS...
+DEBUG SDLWrapper: Music loaded successfully.
+DEBUG SDLWrapper: Calling Mix_PlayMusic...
+DEBUG SDLWrapper: Mix_PlayMusic call succeeded. Playback started.
+MediaController: nextTrack called.
+[DEBUG] findAdjacentTrack: In Playlist context.
+DEBUG SDLWrapper: playAudio requested for: /home/dung20210222/Documents/F/MediaPlayer/test_media/media/KPOP/Crazy Form.mp3
+DEBUG SDLWrapper: Halting music.
+DEBUG SDLWrapper: musicFinishedCallback() triggered.
+MediaPlayer: Track finished.
+MediaPlayer: Manual stop detected, ignoring auto-next.
+DEBUG SDLWrapper: Freeing current music resource.
+DEBUG SDLWrapper: Loading music with Mix_LoadMUS...
+DEBUG SDLWrapper: Music loaded successfully.
+DEBUG SDLWrapper: Calling Mix_PlayMusic...
+DEBUG SDLWrapper: Mix_PlayMusic call succeeded. Playback started.
+MediaController: nextTrack called.
+[DEBUG] findAdjacentTrack: In Playlist context.
+DEBUG SDLWrapper: playAudio requested for: /media/dung20210222/38D0214FD02114A2/1.mp3
+DEBUG SDLWrapper: Halting music.
+DEBUG SDLWrapper: musicFinishedCallback() triggered.
+MediaPlayer: Track finished.
+MediaPlayer: Manual stop detected, ignoring auto-next.
+DEBUG SDLWrapper: Freeing current music resource.
+DEBUG SDLWrapper: Loading music with Mix_LoadMUS...
+DEBUG SDLWrapper: Music loaded successfully.
+DEBUG SDLWrapper: Calling Mix_PlayMusic...
+DEBUG SDLWrapper: Mix_PlayMusic call succeeded. Playback started.
+MediaController: pauseOrResume called.
+DEBUG SDLWrapper: Pausing music.
 --- Application Shutting Down ---
 App: Cleanup complete.
 DEBUG SDLWrapper: Closing...
+DEBUG SDLWrapper: Halting music.
+DEBUG SDLWrapper: musicFinishedCallback() triggered.
+MediaPlayer: Track finished.
+MediaPlayer: Auto-next did not start new track. Setting track to null.
+DEBUG SDLWrapper: Freeing current music resource.
 DEBUG SDLWrapper: Closed successfully.

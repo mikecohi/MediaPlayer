@@ -11,7 +11,7 @@ class IMainAreaView;
 class AppController;
 class MediaFile; 
 class PopupView; 
-
+class TopBarView;
 // Enums
 enum class AppMode {
     FILE_BROWSER,
@@ -50,9 +50,12 @@ private:
     WINDOW *sidebarWin;
     WINDOW *mainWin;
     WINDOW *bottomWin; 
+    WINDOW *topWin;
     
     int sidebarWidth;
     int bottomBarHeight;
+    int topBarHeight;
+
 
     AppMode currentMode;
     FocusArea currentFocus;
@@ -60,6 +63,7 @@ private:
     std::unique_ptr<SidebarView> sidebarView;
     std::unique_ptr<BottomBarView> bottomBarView;
     std::unique_ptr<IMainAreaView> mainAreaView;
+    std::unique_ptr<TopBarView> topBarView;
 
     bool needsRedrawSidebar;
     bool needsRedrawMain;

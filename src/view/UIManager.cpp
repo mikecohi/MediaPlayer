@@ -14,7 +14,7 @@
 #include "view/MainFileView.h"
 #include "view/MainPlaylistView.h"
 #include "view/PopupView.h"
-
+#include "view/TopBarView.h"
 #include "model/MediaFile.h"
 #include "model/Playlist.h"
 #include "model/PlaylistManager.h"
@@ -24,8 +24,8 @@
 UIManager::UIManager(NcursesUI* ui, AppController* controller)
     : ui(ui), appController(controller), isRunning(false),
       screenH(0), screenW(0), mainHeight(0), mainWidth(0),
-      sidebarWin(nullptr), mainWin(nullptr), bottomWin(nullptr),
-      sidebarWidth(20), bottomBarHeight(5),
+      sidebarWin(nullptr), mainWin(nullptr), bottomWin(nullptr), topWin(nullptr),
+      sidebarWidth(20), bottomBarHeight(5), topBarHeight(3),
       currentMode(AppMode::FILE_BROWSER),
       currentFocus(FocusArea::SIDEBAR),
       // Initialize redraw flags
@@ -46,40 +46,40 @@ bool UIManager::init() {
     if (ui == nullptr) return false;
     ui->getScreenDimensions(screenH, screenW);
 
-    mainHeight = screenH - bottomBarHeight;
+    // Giảm chiều cao vùng chính vì thêm top bar
+    mainHeight = screenH - bottomBarHeight - topBarHeight;
     mainWidth = screenW - sidebarWidth;
 
-    if (mainHeight < 10 || mainWidth < 20) { /* Terminal too small */ return false; }
+    if (mainHeight < 10 || mainWidth < 20) return false;
 
-    sidebarWin = newwin(mainHeight, sidebarWidth, 0, 0);
-    mainWin = newwin(mainHeight, mainWidth, 0, sidebarWidth);
-    bottomWin = newwin(bottomBarHeight, screenW, screenH - bottomBarHeight, 0);
+    topWin = newwin(topBarHeight, screenW, 0, 0);  // <--- Top bar ở trên cùng
+    sidebarWin = newwin(mainHeight, sidebarWidth, topBarHeight, 0);
+    mainWin = newwin(mainHeight, mainWidth, topBarHeight, sidebarWidth);
+    bottomWin = newwin(bottomBarHeight, screenW, topBarHeight + mainHeight, 0);
 
-    if (!sidebarWin || !mainWin || !bottomWin) { /* Failed win create */ return false; }
+    if (!topWin || !sidebarWin || !mainWin || !bottomWin) return false;
 
-    // Initialize child views
+    // Khởi tạo các view
+    topBarView = std::make_unique<TopBarView>(ui, topWin, "🎵 MY MEDIA PLAYER 🎵");
     sidebarView = std::make_unique<SidebarView>(ui, sidebarWin);
     bottomBarView = std::make_unique<BottomBarView>(ui, appController->getMediaPlayer(), bottomWin);
-
     switchMainView(AppMode::FILE_BROWSER);
 
-    // Initialize PopupView
     popup = std::make_unique<PopupView>(ui, screenH, screenW);
-
     return true;
 }
 
+
 void UIManager::run() {
     isRunning = true;
-    // drawAll(); // Initial draw - Optional, can rely on first loop draw
     while (isRunning) {
         InputEvent event = ui->getInput();
 
-        if (event.type != InputEvent::UNKNOWN) {
+        if (event.type != InputEvent::UNKNOWN)
             handleInput(event);
-        }
 
-        // --- OPTIMIZED DRAWING ---
+        // --- Vẽ lại các vùng ---
+        if (topBarView) topBarView->draw();  // <--- Vẽ tiêu đề
         if (needsRedrawSidebar && sidebarView) {
             sidebarView->draw(currentFocus == FocusArea::SIDEBAR);
             needsRedrawSidebar = false;
@@ -88,12 +88,13 @@ void UIManager::run() {
             mainAreaView->draw(currentFocus);
             needsRedrawMain = false;
         }
-        if (bottomBarView) {
+        if (bottomBarView)
             bottomBarView->draw(currentFocus == FocusArea::BOTTOM_BAR);
-        }
-        doupdate(); // Update physical screen
+
+        doupdate();
     }
 }
+
 
 // Helper: Check if mouse is in window
 bool is_mouse_in_window(WINDOW* win, int globalY, int globalX) {
@@ -234,31 +235,43 @@ void UIManager::handleInput(InputEvent event) {
                 flash();
         }
         break;
-        case MainAreaAction::EDIT_METADATA: {
-                if (currentMode != AppMode::FILE_BROWSER && currentMode != AppMode::USB_BROWSER) break;
-                auto fileView = dynamic_cast<MainFileView*>(mainAreaView.get());
-                if (!fileView) break;
-                
-                MediaFile* fileToEdit = fileView->getSelectedFile();
-                if (!fileToEdit || !popup) {
-                    flash();
-                    break;
-                }
-                
-                // 1. Mở trình chỉnh sửa
-                // PopupView sẽ tự cập nhật đối tượng 'fileToEdit->getMetadata()'
-                bool saved = popup->showMetadataEditor(fileToEdit->getMetadata());
-                
-                // 2. Buộc vẽ lại UI
-                needsRedrawSidebar = true;
-                needsRedrawMain = true;
-                
-                // 3. Nếu đã lưu, gọi Controller để ghi ra đĩa
-                if (saved) {
-                    appController->getMediaController()->saveMetadataChanges(fileToEdit);
-                }
+        case MainAreaAction::EDIT_METADATA: 
+        {
+            if (currentMode != AppMode::FILE_BROWSER && currentMode != AppMode::USB_BROWSER)
+                break;
+
+            MediaFile* fileToEdit = nullptr;
+
+            // 🔹 Chọn view đúng loại theo mode hiện tại
+            if (currentMode == AppMode::FILE_BROWSER) {
+                if (auto* fv = dynamic_cast<MainFileView*>(mainAreaView.get()))
+                    fileToEdit = fv->getSelectedFile();
+            }
+            else if (currentMode == AppMode::USB_BROWSER) {
+                if (auto* uv = dynamic_cast<MainUSBView*>(mainAreaView.get()))
+                    fileToEdit = uv->getSelectedFile();
+            }
+
+            if (!fileToEdit || !popup) {
+                flash();
                 break;
             }
+
+            // 🔸 Mở popup edit metadata
+            bool saved = popup->showMetadataEditor(fileToEdit->getMetadata());
+
+            // 🔸 Cập nhật lại giao diện
+            needsRedrawSidebar = true;
+            needsRedrawMain = true;
+
+            // 🔸 Nếu đã lưu thì gọi MediaController để ghi lại
+            if (saved && appController && appController->getMediaController()) {
+                appController->getMediaController()->saveMetadataChanges(fileToEdit);
+            }
+
+            break;
+        }
+
         case MainAreaAction::PLAY_PLAYLIST:
             {
                 if (currentMode == AppMode::PLAYLISTS) {
