@@ -8,15 +8,6 @@ Metadata::Metadata() : durationInSeconds(0) {
     fields["year"] = "0";
 }
 
-// void Metadata::editField(const std::string& key, const std::string& value) {
-//     // This map-based approach handles custom keys automatically.
-//     // Specific logic (like updating 'title' member) can be added.
-//     if (key == "title") {
-//         this->title = value;
-//     }
-//     // Store it in the map regardless
-//     this->customFields[key] = value;
-// }
 
 std::string Metadata::getField(const std::string& key) const {
     if (key == "title") {
@@ -32,16 +23,9 @@ std::string Metadata::getField(const std::string& key) const {
 }
 
 void Metadata::setField(const std::string& key, const std::string& value) {
-    // 1. Cập nhật các trường public nếu khớp
     if (key == "title") {
         this->title = value;
     }
     
-    // else if (key == "artist") {
-    //     this->artist = value; 
-    // }
-
-    // 2. Luôn cập nhật map nội bộ
-    // (Nó sẽ tự động thêm mới nếu key chưa tồn tại, hoặc cập nhật nếu đã có)
     this->fields[key] = value;
 }

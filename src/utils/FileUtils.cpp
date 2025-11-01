@@ -1,28 +1,24 @@
 #include "FileUtils.h"
-#include <filesystem> // Requires C++17
-#include <iostream>   // For error logging
+#include <filesystem> 
+#include <iostream>
 #include <set>
 #include <string>
-#include <algorithm> // For std::transform
+#include <algorithm> 
 
-#include <unistd.h>     // readlink
-#include <linux/limits.h> // PATH_MAX
+#include <unistd.h>
+#include <linux/limits.h> 
 
 namespace {
-    // Helper function to convert a string to lowercase
     std::string toLower(std::string s) {
         std::transform(s.begin(), s.end(), s.begin(),
                        [](unsigned char c){ return std::tolower(c); });
         return s;
     }
-} // Anonymous namespace
+} 
 
 bool FileUtils::isMediaFile(const std::string& filePath) {
-    // Use a static set for efficient (O(log N)) lookup
     static const std::set<std::string> mediaExtensions = {
-        // Audio Formats
         ".mp3", ".wav", ".flac", ".aac", ".ogg", ".m4a",
-        // Video Formats
         ".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv"
     };
 
@@ -72,16 +68,12 @@ fs::path FileUtils::getProjectRootPath() {
     ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
 
     if (count == -1) {
-        // Lỗi: không đọc được /proc/self/exe, trả về CWD
         std::cerr << "Warning: Could not read /proc/self/exe. Using current directory." << std::endl;
         return fs::current_path();
     }
 
-    result[count] = '\0'; // Đảm bảo null-terminated
+    result[count] = '\0';
     fs::path exePath(result);
     
-    // exePath là: /path/to/MediaPlayer/bin/mediaplayer
-    // .parent_path() là: /path/to/MediaPlayer/bin
-    // .parent_path().parent_path() là: /path/to/MediaPlayer
     return exePath.parent_path().parent_path(); 
 }

@@ -13,12 +13,11 @@
 #include "controller/PlaylistController.h"
 #include <filesystem>
 #include <iostream>
-#include <cstdlib>   // getenv()
-#include <unistd.h>  // getlogin()
+#include <cstdlib>
+#include <unistd.h> 
 
 namespace fs = std::filesystem;
 
-// Helper: Lấy Music folder của user
 static fs::path getUserMusicRoot() {
     const char* home = getenv("HOME");
     if (!home) home = getlogin();
@@ -58,7 +57,7 @@ bool AppController::init() {
 
     playlistController = std::make_unique<PlaylistController>(playlistManager.get());
 
-    // Callback tự động next track
+    // Callback auto next track
     mediaPlayer->setOnTrackFinishedCallback([this]() {
         if (!this->mediaPlayer) return;
         MediaFile* current = this->mediaPlayer->getCurrentTrack();
@@ -82,11 +81,11 @@ bool AppController::loadUSBLibrary() {
 
     currentUSBPath = usbUtils->detectUSBMount();
     if (currentUSBPath.empty()) {
-        std::cerr << "[AppController] ❌ No USB detected.\n";
+        std::cerr << "[AppController]  No USB detected.\n";
         return false;
     }
 
-    std::cout << "[AppController] ✅ Loading media from: " << currentUSBPath << std::endl;
+    std::cout << "[AppController] Loading media from: " << currentUSBPath << std::endl;
     usbMediaManager->loadFromDirectory(currentUSBPath);
     usbmediaController = std::make_unique<MediaController>(
         usbMediaManager.get(), mediaPlayer.get(),
@@ -96,11 +95,10 @@ bool AppController::loadUSBLibrary() {
     if (playlistManager)
         playlistManager->setUSBMediaManager(usbMediaManager.get());
 
-    // Reload playlists trong thư mục Music của user
     fs::path root = getUserMusicRoot();
     fs::path playlistPath = root / "playlist" / "playlists.json";
     if (playlistManager) {
-        std::cout << "[AppController] 🔁 Reloading playlists after USB mount...\n";
+        std::cout << "[AppController]  Reloading playlists after USB mount...\n";
         playlistManager->loadFromFile(playlistPath.string());
     }
     return true;
@@ -117,18 +115,18 @@ bool AppController::ejectUSB() {
 
     bool ok = usbUtils->unmountUSB(currentUSBPath);
 
-    if (ok && usbMediaManager) {
+    if (ok && usbMediaManager ) {
         usbMediaManager->clearLibrary();
-        std::cout << "[AppController] ✅ USB unmounted safely.\n";
+        std::cout << "[AppController]  USB unmounted safely.\n";
 
         fs::path root = getUserMusicRoot();
         fs::path playlistPath = root / "playlist" / "playlists.json";
         if (playlistManager) {
-            std::cout << "[AppController] 🔁 Reloading playlists after USB eject...\n";
+            std::cout << "[AppController] Reloading playlists after USB eject...\n";
             playlistManager->loadFromFile(playlistPath.string());
         }
     } else {
-        std::cerr << "[AppController] ⚠️ Failed to unmount USB.\n";
+        std::cerr << "[AppController] Failed to unmount USB.\n";
     }
 
     currentUSBPath.clear();

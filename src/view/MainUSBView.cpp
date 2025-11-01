@@ -22,25 +22,20 @@ MainUSBView::MainUSBView(NcursesUI* ui, WINDOW* win, AppController* controller)
 
     updateUSBStatus();
 
-        // Calculate initial pagination (will be recalculated in draw)
     int width, height;
     getmaxyx(win, height, width);
-    // Calculate max lines available for files (excluding borders, header, footer/buttons)
     int availableLines = height - 4 - 2; // -4 box, -2 header/footer line
     if(availableLines < 1) availableLines = 1;
-    // Limit items per page to 25 or available lines, whichever is smaller
     itemsPerPage = std::min(25, availableLines);
 
     totalPages = mediaManager ? mediaManager->getTotalPages(itemsPerPage) : 1;
     if (totalPages == 0) totalPages = 1;
 }
 
-// --- Kiểm tra trạng thái USB ---
 void MainUSBView::updateUSBStatus() {
     if (!appController) return;
     mediaManager = appController->getUSBMediaManager();
 
-    // Kiểm tra USB hiện có (chỉ xem dữ liệu hiện tại, không load lại)
     if (mediaManager && mediaManager->getTotalFileCount() > 0) {
         usbConnected = true;
     } else {
@@ -49,7 +44,6 @@ void MainUSBView::updateUSBStatus() {
 }
 
 
-// --- DRAW FUNCTION ---
 void MainUSBView::draw(FocusArea focus) {
     werase(win);
     box(win, 0, 0);
@@ -59,12 +53,10 @@ void MainUSBView::draw(FocusArea focus) {
     int listWidth = width / 2;
     int detailWidth = width - listWidth;
 
-    // --- Trường hợp KHÔNG có USB ---
     if (!usbConnected || !mediaManager || mediaManager->getTotalFileCount() == 0) {
         std::string msg = "⚠️ No USB detected. Please connect a USB drive.";
         mvwprintw(win, height / 2, (width - msg.size()) / 2, "%s", msg.c_str());
 
-        // --- Nút Reload và Eject ---
         std::string reloadLabel = "[Reload USB]";
         std::string ejectLabel = "[Eject USB]";
         reloadBtnW = reloadLabel.length();
@@ -81,8 +73,7 @@ void MainUSBView::draw(FocusArea focus) {
         return;
     }
 
-    // --- Có USB: hiển thị danh sách media ---
-    int availableLines = height - 4 - 2; // chừa 3 dòng cuối cho nút
+    int availableLines = height - 4 - 2;
     if(availableLines < 1) availableLines = 1;
     itemsPerPage = std::min(25, availableLines);
     totalPages = mediaManager->getTotalPages(itemsPerPage);
@@ -100,27 +91,22 @@ void MainUSBView::draw(FocusArea focus) {
     mvwprintw(win, 2, (listWidth - pageInfo.size()) / 2, "%s", pageInfo.c_str());
     mvwprintw(win, nextBtnY, nextBtnX, "%s", nextLabel.c_str());
 
-   // File list content (loop up to itemsPerPage)
     std::vector<MediaFile*> filesOnPage = mediaManager ? mediaManager->getPage(filePage, itemsPerPage) : std::vector<MediaFile*>();
     for (size_t i = 0; i < filesOnPage.size(); ++i) {
         int lineY = 4 + i;
-        if (lineY >= height - 2) break; // Don't draw outside window
+        if (lineY >= height - 2) break;
 
-        // The global index of the current file being drawn
         int fileIdxGlobal = (filePage - 1) * itemsPerPage + i;
 
-        // Highlight if this file is the currently selected one
         if (focus == FocusArea::MAIN_LIST && fileIdxGlobal == fileSelected) {
             wattron(win, A_REVERSE | A_BOLD);
         }
 
-        // Draw the filename from the filesOnPage vector using index 'i'
         mvwprintw(win, lineY, 3, "%.*s", listWidth - 5, filesOnPage[i]->getFileName().c_str());
         
         wattroff(win, A_REVERSE | A_BOLD);
     }
 
-    // --- Metadata khung ---
     std::string metaTitle = "Metadata";
     editBtnY = 2;
     std::string editLabel = "[Edit]";
@@ -140,12 +126,10 @@ void MainUSBView::draw(FocusArea focus) {
     mvwaddch(win, height - 4, listWidth, ACS_LLCORNER);
     mvwaddch(win, height - 4, width - 2, ACS_LRCORNER);
 
- // Metadata content - ONLY if explicitly selected
     if (fileExplicitlySelected) {
         MediaFile* selectedFile = getSelectedFile();
         if (selectedFile && selectedFile->getMetadata()) {
              mvwprintw(win, 4, listWidth + 2, "Title: %.*s", detailWidth-4, selectedFile->getMetadata()->title.c_str());
-             // Draw other fields...
              mvwprintw(win, 5, listWidth + 2, "Artist: %.*s", detailWidth-4, selectedFile->getMetadata()->getField("artist").c_str());
              mvwprintw(win, 6, listWidth + 2, "Album: %.*s", detailWidth-4, selectedFile->getMetadata()->getField("album").c_str());
 
@@ -156,7 +140,6 @@ void MainUSBView::draw(FocusArea focus) {
          mvwprintw(win, 4, listWidth + 2, "(Select a file to view details)"); // Initial message
     }
 
-    // --- Buttons: Add to Playlist + Reload + Eject ---
     std::string addLabel = "[Add to Playlist]";
     addBtnW = addLabel.length();
     addBtnY = height - 3;
@@ -189,8 +172,6 @@ MainAreaAction MainUSBView::handleInput(InputEvent event, FocusArea focus) {
     bool selectionChanged = false; // Flag to check if selection actually moved
 
     if (focus == FocusArea::MAIN_LIST && totalFiles > 0) {
-        //int oldSelected = fileSelected;
-        //int oldPage = filePage; // No longer needed here
 
         if (event.key == KEY_DOWN) {
             fileSelected = std::min(fileSelected + 1, totalFiles - 1);
@@ -236,7 +217,7 @@ MainAreaAction MainUSBView::handleInput(InputEvent event, FocusArea focus) {
                  flash(); // Indicate nothing selected
             }
         }
-        // (Add KEY_UP/KEY_DOWN for button selection later)
+
     }
     return MainAreaAction::NONE;
 }
@@ -285,7 +266,6 @@ MainAreaAction MainUSBView::handleMouse(int y, int x) {
     }
 
 
-    // Check List/Detail Panel Clicks
     if (x < listWidth) { // Click on list panel
         if (clickedIndexOnPage >= 0 && clickedIndexOnPage < itemsPerPage) {
             int clickedIndexGlobal = (filePage - 1) * itemsPerPage + clickedIndexOnPage;
@@ -303,7 +283,7 @@ MainAreaAction MainUSBView::handleMouse(int y, int x) {
                  flash(); // Indicate no file selected
              }
         }
-        // (Could add click handling for metadata area itself)
+       
     }
     return MainAreaAction::NONE;
 }
@@ -313,13 +293,11 @@ MainAreaAction MainUSBView::handleMouse(int y, int x) {
 
 
 
-// --- GETSELECTEDFILE FUNCTION (No changes needed from previous version) ---
 MediaFile* MainUSBView::getSelectedFile() const {
     if (!mediaManager) return nullptr;
     int totalFiles = mediaManager->getTotalFileCount();
     if (fileSelected < 0 || fileSelected >= totalFiles) return nullptr;
 
-    // Ensure itemsPerPage is valid before division
     if (itemsPerPage <= 0) {
         std::cerr << "Error: itemsPerPage is invalid in getSelectedFile: " << itemsPerPage << std::endl;
         return nullptr;
@@ -328,14 +306,11 @@ MediaFile* MainUSBView::getSelectedFile() const {
     int targetPage = (fileSelected / itemsPerPage) + 1;
     int indexOnPage = fileSelected % itemsPerPage;
 
-    // Recalculate totalPages for robust check
     int currentTotalPages = mediaManager->getTotalPages(itemsPerPage);
     if(currentTotalPages == 0) currentTotalPages = 1;
 
     if (targetPage < 1 || targetPage > currentTotalPages) {
-         // This can happen briefly if totalFiles changes and selection wasn't updated
-         // std::cerr << "Warning: targetPage " << targetPage << " out of bounds (1-" << currentTotalPages << ")" << std::endl;
-         return nullptr; // Return null if page calc is wrong
+         return nullptr;
     }
 
     std::vector<MediaFile*> pageData = mediaManager->getPage(targetPage, itemsPerPage);
@@ -343,7 +318,6 @@ MediaFile* MainUSBView::getSelectedFile() const {
         return pageData[indexOnPage];
     }
 
-    // Only log actual errors, not transient states
     if (static_cast<size_t>(indexOnPage) >= pageData.size()){
       std::cerr << "Error in getSelectedFile: indexOnPage=" << indexOnPage
                 << " >= pageData.size=" << pageData.size() << std::endl;

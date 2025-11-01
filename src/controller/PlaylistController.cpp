@@ -30,7 +30,7 @@ bool PlaylistController::deletePlaylist(const std::string& name) {
     if (name.empty()) {
         return false;
     }
-    //return playlistManager->deletePlaylist(name);
+    
     bool success = playlistManager->deletePlaylist(name);
     if (success) {
         playlistManager->autoSave(); 

@@ -137,9 +137,6 @@ void MainFileView::draw(FocusArea focus) {
     mvwprintw(win, addButtonY, addButtonX, "%s", addLabel.c_str());
     wattroff(win, A_REVERSE | A_BOLD);
 
-    // Debug info (optional)
-    //mvwprintw(win, height - 1, 2, "DEBUG: Files=%d Pg=%d Sel=%d Items=%d", totalFiles, filePage, fileSelected, itemsPerPage);
-
     wnoutrefresh(win);
 }
 // --- END DRAW FUNCTION ---
@@ -151,8 +148,6 @@ MainAreaAction MainFileView::handleInput(InputEvent event, FocusArea focus) {
     bool selectionChanged = false; // Flag to check if selection actually moved
 
     if (focus == FocusArea::MAIN_LIST && totalFiles > 0) {
-        //int oldSelected = fileSelected;
-        //int oldPage = filePage; // No longer needed here
 
         if (event.key == KEY_DOWN) {
             fileSelected = std::min(fileSelected + 1, totalFiles - 1);
@@ -204,7 +199,7 @@ MainAreaAction MainFileView::handleInput(InputEvent event, FocusArea focus) {
                  flash(); // Indicate nothing selected
             }
         }
-        // (Add KEY_UP/KEY_DOWN for button selection later)
+
     }
     return MainAreaAction::NONE;
 }
@@ -262,13 +257,10 @@ MainAreaAction MainFileView::handleMouse(int localY, int localX) {
                  flash(); // Indicate no file selected
              }
         }
-        // (Could add click handling for metadata area itself)
+
     }
     return MainAreaAction::NONE;
 }
-// --- END HANDLEMOUSE FUNCTION ---
-
-// --- GETSELECTEDFILE FUNCTION (No changes needed from previous version) ---
 MediaFile* MainFileView::getSelectedFile() const {
     if (!mediaManager) return nullptr;
     int totalFiles = mediaManager->getTotalFileCount();
@@ -288,8 +280,7 @@ MediaFile* MainFileView::getSelectedFile() const {
     if(currentTotalPages == 0) currentTotalPages = 1;
 
     if (targetPage < 1 || targetPage > currentTotalPages) {
-         // This can happen briefly if totalFiles changes and selection wasn't updated
-         // std::cerr << "Warning: targetPage " << targetPage << " out of bounds (1-" << currentTotalPages << ")" << std::endl;
+
          return nullptr; // Return null if page calc is wrong
     }
 
@@ -298,11 +289,9 @@ MediaFile* MainFileView::getSelectedFile() const {
         return pageData[indexOnPage];
     }
 
-    // Only log actual errors, not transient states
+
     if (static_cast<size_t>(indexOnPage) >= pageData.size()){
       std::cerr << "Error in getSelectedFile: indexOnPage=" << indexOnPage
                 << " >= pageData.size=" << pageData.size() << std::endl;
     }
     return nullptr;
-}
-// --- END GETSELECTEDFILE FUNCTION ---

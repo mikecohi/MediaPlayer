@@ -7,10 +7,6 @@
 
 class Metadata; 
 
-/**
- * @class PopupView
- * @brief A simple modal popup for text input or list selection.
- */
 class PopupView {
 public:
     PopupView(NcursesUI* ui, int parentHeight, int parentWidth);

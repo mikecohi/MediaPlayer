@@ -8,17 +8,9 @@
 
 namespace fs = std::filesystem;
 
-bool USBUtils::isRunningOnWSL() {
-    std::ifstream versionFile("/proc/version");
-    std::string content;
-    if (versionFile.is_open()) {
-        std::getline(versionFile, content);
-        versionFile.close();
-        return content.find("Microsoft") != std::string::npos ||
-               content.find("WSL") != std::string::npos;
-    }
-    return false;
-}
+/**
+ * Kiểm tra thiết bị có thể tháo rời không (USB thật)
+ */
 bool USBUtils::isDeviceRemovable(const std::string& deviceName) {
     std::string sysPath = "/sys/block/" + deviceName + "/removable";
     std::ifstream file(sysPath);
@@ -30,75 +22,41 @@ bool USBUtils::isDeviceRemovable(const std::string& deviceName) {
     return (flag == 1);
 }
 
-std::string USBUtils::detectWSLUSBDrive() {
-    const char* cmd =
-    "/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe "
-    "-Command \"(Get-Volume | Where-Object {\\$_.DriveType -eq 'Removable'} | Select -ExpandProperty DriveLetter)\"";
-
-
-    FILE* pipe = popen(cmd, "r");
-    if (!pipe) {
-        std::cerr << "[USBUtils] ❌ Cannot open PowerShell pipe\n";
-        return "";
-    }
-
+/**
+ * Lấy thiết bị chứa root filesystem (ví dụ /dev/sda2)
+ */
+std::string USBUtils::getRootDevice() {
+    FILE* pipe = popen("findmnt -no SOURCE /", "r");
+    if (!pipe) return "";
     char buffer[128];
     std::string result;
-
-    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
-        result += buffer;
-    }
+    while (fgets(buffer, sizeof(buffer), pipe)) result += buffer;
     pclose(pipe);
-
-    // Xóa BOM UTF-8 nếu có (0xEF,0xBB,0xBF)
-    if (!result.empty() && (unsigned char)result[0] == 0xEF) {
-        result.erase(0, 3);
-    }
-
-    // Xóa whitespace thừa: \n \r \t space
     result.erase(std::remove_if(result.begin(), result.end(), ::isspace), result.end());
+    return result; // ví dụ: "/dev/sda2"
+}
 
-    if (result.empty()) {
-        std::cerr << "[USBUtils] ⚠️ PowerShell returned no drive letter\n";
+/**
+ * Phát hiện và trả về đường dẫn mount của USB (Linux thật)
+ */
+std::string USBUtils::detectUSBMount() {
+    const char* username = getenv("USER");
+    if (!username) {
+        std::cerr << "[USBUtils] ⚠️ Cannot detect USER environment.\n";
         return "";
     }
 
-    return result + ":"; // Ví dụ "F:"
-}
-
-std::string USBUtils::detectUSBMount() {
-    if (isRunningOnWSL()) {
-        std::string mountPath = "usb";
-
-        // Tạo thư mục mount nếu chưa có
-        // if (!fs::exists(mountPath)) {
-        //     std::cout<<"in"<<std::endl;
-        //     fs::create_directories(mountPath);
-        //     std::cout << "[USBUtils] Created WSL USB mount folder: " << mountPath << "\n";
-        // }
-        // std::cout<<"next1"<<std::endl;
-        // ✅ Dò đúng removable USB drive bằng PowerShell (không nhầm với HDD/SSD khác)
-        std::string detectedDrive = detectWSLUSBDrive();
-        if (detectedDrive.empty()) {
-            std::cerr << "[USBUtils] ⚠️ No removable USB drive detected in WSL.\n";
-            return "";
-        }
-
-        std::cout << "[USBUtils] ✅ USB drive detected: " << detectedDrive << "\n";
-
-        // Mount vào thư mục usb/
-        if (!mountWSLDrive(detectedDrive, mountPath)) {
-            std::cerr << "[USBUtils] ❌ Failed to mount " << detectedDrive << "\n";
-            return "";
-        }
-std::cout << "[USBUtils] ✅ USB mounted successfully at: " << mountPath << "\n";
-        return mountPath;
+    // Xác định ổ hệ thống để loại trừ
+    std::string rootDev = getRootDevice();
+    std::string rootDisk = "";
+    if (!rootDev.empty()) {
+        std::string rootBase = fs::path(rootDev).filename().string(); // ví dụ "sda2"
+        rootDisk = rootBase.substr(0, 3); // "sda"
+        std::cout << "[USBUtils] 🧭 Root device: " << rootDev 
+                  << " (Disk: " << rootDisk << ")\n";
+    } else {
+        std::cerr << "[USBUtils] ⚠️ Cannot determine root device.\n";
     }
-
-
-    // --- Linux thật ---
-    const char* username = getenv("USER");
-    if (!username) return "";
 
     std::vector<std::string> basePaths = {
         "/media/" + std::string(username),
@@ -109,9 +67,38 @@ std::cout << "[USBUtils] ✅ USB mounted successfully at: " << mountPath << "\n"
         if (!fs::exists(base)) continue;
 
         for (const auto& entry : fs::directory_iterator(base)) {
-            if (fs::is_directory(entry.path())) {
-                std::cout << "[USBUtils] ✅ Found USB at: " << entry.path() << "\n";
+            if (!fs::is_directory(entry.path())) continue;
+
+            std::string label = entry.path().filename().string();
+            std::string devLink = "/dev/disk/by-label/" + label;
+
+            if (!fs::exists(devLink)) {
+                std::cout << "[USBUtils] ⚙️ Skipping non-device entry: " << label << "\n";
+                continue;
+            }
+
+            std::string devTarget;
+            try {
+                devTarget = fs::read_symlink(devLink).filename().string(); // sda1, sdb1, ...
+            } catch (...) {
+                std::cerr << "[USBUtils] ⚠️ Failed to resolve symlink for " << devLink << "\n";
+                continue;
+            }
+
+            std::string deviceName = devTarget.substr(0, 3); // sda, sdb, ...
+
+            // Loại trừ ổ hệ thống
+            if (!rootDisk.empty() && deviceName == rootDisk) {
+                std::cout << "[USBUtils] ⚠️ Skipping system disk: " << deviceName << "\n";
+                continue;
+            }
+
+            // Chỉ chấp nhận nếu removable
+            if (isDeviceRemovable(deviceName)) {
+                std::cout << "[USBUtils] ✅ Found removable USB: " << entry.path() << "\n";
                 return entry.path().string();
+            } else {
+                std::cout << "[USBUtils] ⚙️ Ignored non-removable device: " << deviceName << "\n";
             }
         }
     }
@@ -120,17 +107,6 @@ std::cout << "[USBUtils] ✅ USB mounted successfully at: " << mountPath << "\n"
     return "";
 }
 
-bool USBUtils::mountWSLDrive(const std::string& driveLetter, const std::string& mountPath) {
-    std::string cmd = "sudo mount -t drvfs " + driveLetter + " " + mountPath + " >/dev/null 2>&1";
-    int ret = std::system(cmd.c_str());
-    if (ret == 0) {
-        std::cout << "[USBUtils] ✅ Mounted " << driveLetter << " to " << mountPath << "\n";
-        return true;
-    } else {
-        std::cerr << "[USBUtils] ⚠️ Mount command failed: " << cmd << "\n";
-        return false;
-    }
-}
 bool USBUtils::unmountUSB(const std::string& mountPath) {
     if (mountPath.empty() || !fs::exists(mountPath)) {
         std::cerr << "[USBUtils] ⚠️ Invalid mount path for unmount: " << mountPath << "\n";
@@ -147,4 +123,3 @@ bool USBUtils::unmountUSB(const std::string& mountPath) {
         return false;
     }
 }
-

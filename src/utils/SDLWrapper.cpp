@@ -44,8 +44,6 @@ void SDLWrapper::close() {
     stopAudio(); // Halt and free music first
     Mix_HookMusicFinished(nullptr); // Unregister callback
     Mix_CloseAudio();
-    // The while loop might not be necessary, Mix_CloseAudio should block.
-    // while(Mix_QuerySpec(nullptr, nullptr, nullptr)) {}
     Mix_Quit();
     SDL_Quit();
     isInitialized = false;

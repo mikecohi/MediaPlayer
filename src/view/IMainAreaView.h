@@ -3,7 +3,7 @@
 #include "view/UIManager.h" 
 
 enum class MainAreaAction {
-    NONE, // No action requested
+    NONE, 
     
     // Playlist Actions
     CREATE_PLAYLIST,
@@ -13,7 +13,7 @@ enum class MainAreaAction {
     
     // File Actions
     ADD_TRACK_TO_PLAYLIST,
-    EDIT_METADATA // (For future)
+    EDIT_METADATA 
 };
 
 class IMainAreaView {

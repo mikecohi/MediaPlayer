@@ -9,7 +9,6 @@ void TopBarView::draw() {
     box(win, 0, 0);
 
     int width = getmaxx(win);
-    //init_pair(1, COLOR_GREEN, COLOR_BLUE); // foreground, background
     wattron(win, A_BOLD | A_REVERSE);
     mvwprintw(win, 1, (width - title.size()) / 2, "%s", title.c_str());
     wattroff(win, A_BOLD | A_REVERSE);

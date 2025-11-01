@@ -1,5 +1,5 @@
 #include "view/SidebarView.h"
-#include "view/UIManager.h" // Needs AppMode definition
+#include "view/UIManager.h"
 
 SidebarView::SidebarView(NcursesUI* ui, WINDOW* win)
     : ui(ui), win(win), selectedOption(0), exitFlag(false)
@@ -10,7 +10,6 @@ SidebarView::SidebarView(NcursesUI* ui, WINDOW* win)
 void SidebarView::draw(bool hasFocus) {
     werase(win);
     box(win, 0, 0);
-    //mvwprintw(win, 0, (getmaxx(win) - 8)/2, "Navigate"); // Center title
 
     for (size_t i = 0; i < options.size(); ++i) {
         if (static_cast<int>(i) == selectedOption) {
@@ -24,7 +23,6 @@ void SidebarView::draw(bool hasFocus) {
     wnoutrefresh(win);
 }
 
-// Determines the AppMode based on the currently selected option
 AppMode SidebarView::getCurrentModeSelection() const {
      if (selectedOption == 1) return AppMode::PLAYLISTS;
      if (selectedOption == 2) return AppMode::USB_BROWSER;
@@ -40,18 +38,18 @@ AppMode SidebarView::handleInput(InputEvent event) {
         case KEY_DOWN: selectedOption = (selectedOption + 1) % options.size(); break;
         case 10: // Enter
             if (selectedOption == 3) exitFlag = true;
-            break; // Let the caller (UIManager) switch the mode
+            break;
      }
      return getCurrentModeSelection(); // Return the new mode selected
 }
 
 AppMode SidebarView::handleMouse(int localY, int localX) {
-    int clickedOption = localY - 3; // First option is at Y=3
+    int clickedOption = localY - 3; 
     if (clickedOption >= 0 && static_cast<size_t>(clickedOption) < options.size()) {
         selectedOption = clickedOption;
         if (selectedOption == 3) exitFlag = true;
     }
-    return getCurrentModeSelection(); // Return the mode corresponding to the click
+    return getCurrentModeSelection(); 
 }
 
 

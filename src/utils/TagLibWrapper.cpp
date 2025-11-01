@@ -1,12 +1,11 @@
 #include "TagLibWrapper.h"
-#include "model/AudioMetadata.h" // We will create AudioMetadata objects
-#include "model/VideoMetadata.h" // (For future use)
+#include "model/AudioMetadata.h" 
+#include "model/VideoMetadata.h"
 #include <iostream>
-#include <filesystem> // For getting filename as fallback
-#include <string>     // For std::string, std::stoi
-#include <algorithm>  // For std::transform
+#include <filesystem> 
+#include <string>     
+#include <algorithm>  
 
-// TagLib Includes
 #include <taglib/fileref.h>
 #include <taglib/tag.h>
 #include <taglib/tpropertymap.h>
@@ -14,7 +13,6 @@
 
 namespace fs = std::filesystem;
 
-// Helper to convert string to lowercase
 namespace {
     std::string toLower(std::string s) {
         std::transform(s.begin(), s.end(), s.begin(),
@@ -23,13 +21,9 @@ namespace {
     }
 }
 
-TagLibWrapper::TagLibWrapper() {
-    // Constructor (can be empty)
-}
+TagLibWrapper::TagLibWrapper() {}
 
-TagLibWrapper::~TagLibWrapper() {
-    // Destructor (can be empty)
-}
+TagLibWrapper::~TagLibWrapper() {}
 
 std::unique_ptr<Metadata> TagLibWrapper::readTags(const std::string& filePath) {
     TagLib::FileRef f(filePath.c_str());
@@ -108,8 +102,6 @@ bool TagLibWrapper::writeTags(const std::string& filePath, Metadata* metadata) {
 
     TagLib::Tag *tag = f.tag();
 
-    // Update tags using data from Metadata object
-    // (using UTF8 constructor for TagLib::String)
     tag->setTitle(TagLib::String(metadata->title, TagLib::String::UTF8));
     tag->setArtist(TagLib::String(metadata->getField("artist"), TagLib::String::UTF8));
     tag->setAlbum(TagLib::String(metadata->getField("album"), TagLib::String::UTF8));
@@ -127,7 +119,6 @@ bool TagLibWrapper::writeTags(const std::string& filePath, Metadata* metadata) {
         tag->setYear(0); // Set to 0 if conversion fails
     }
 
-    // Save changes to the file
     if (f.save()) {
         std::cout << "TagLibWrapper: Metadata saved successfully for: " << filePath << std::endl;
         return true;

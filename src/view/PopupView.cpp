@@ -2,14 +2,14 @@
 #include "model/Metadata.h"
 #include <string.h>
 #include <algorithm>
-#include <iostream> // Thêm vào để debug nếu cần
+#include <iostream> 
 
 PopupView::PopupView(NcursesUI* ui, int parentHeight, int parentWidth)
     : ui_(ui), win_(nullptr), parentH_(parentHeight), parentW_(parentWidth)
 {
     winHeight_ = std::min(10, parentH_ - 4);
     winWidth_ = std::min(50, parentW_ - 10);
-    if (winHeight_ < 5) winHeight_ = 5; // Đảm bảo kích thước tối thiểu
+    if (winHeight_ < 5) winHeight_ = 5;
     if (winWidth_ < 20) winWidth_ = 20;
 }
 
@@ -40,9 +40,9 @@ std::optional<std::string> PopupView::showTextInput(const std::string& prompt, c
     curs_set(1);
     echo();
 
-    mvwprintw(win_, 1, 2, "%.*s", winWidth_ - 4, prompt.c_str()); // Sửa: dùng win_
+    mvwprintw(win_, 1, 2, "%.*s", winWidth_ - 4, prompt.c_str()); 
 
-    WINDOW* inputWin = derwin(win_, 1, winWidth_ - 4, 3, 2); // Sửa: dùng win_
+    WINDOW* inputWin = derwin(win_, 1, winWidth_ - 4, 3, 2); 
     wattron(inputWin, A_REVERSE);
     mvwprintw(inputWin, 0, 0, "%-*s", winWidth_ - 4, "");
     wattroff(inputWin, A_REVERSE);
@@ -76,10 +76,10 @@ std::optional<int> PopupView::showListSelection(const std::string& title, const 
     drawWindow(title);
     int selected = 0;
     int scrollOffset = 0;
-    int maxDisplay = winHeight_ - 4; // Sửa: dùng winHeight_
+    int maxDisplay = winHeight_ - 4;
 
     while (true) {
-        werase(win_); // Sửa: dùng win_
+        werase(win_);
         box(win_, 0, 0);
         mvwprintw(win_, 0, (winWidth_ - title.length()) / 2, "%.*s", winWidth_ - 2, title.c_str());
         mvwprintw(win_, 1, 2, "Use UP/DOWN/ENTER. ESC to cancel.");
@@ -141,7 +141,6 @@ std::string PopupView::getLineInput(int y, int x, const std::string& initialValu
     return std::string(buffer);
 }
 
-// Sửa: Dùng win_, winHeight_, winWidth_
 bool PopupView::showMetadataEditor(Metadata* metadata) {
     if (!metadata) return false;
 

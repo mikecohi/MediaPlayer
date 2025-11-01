@@ -3,8 +3,7 @@
 #include <vector>
 #include <string>
 
-// Forward declare
-enum class AppMode; // Use enum from UIManager.h if possible
+enum class AppMode;
 enum class FocusArea;
 
 class SidebarView {
@@ -16,10 +15,6 @@ public:
     bool shouldExit() const;
 
 private:
-    /**
-     * @brief Determines the AppMode based on the currently selected option.
-     * @return The AppMode corresponding to selectedOption.
-     */
     AppMode getCurrentModeSelection() const;
 
     NcursesUI* ui;

@@ -1,17 +1,15 @@
 #include "model/MediaManager.h"
-#include "utils/TagLibWrapper.h" // Need full definition
-#include "utils/FileUtils.h"     // Include for static functions
+#include "utils/TagLibWrapper.h" 
+#include "utils/FileUtils.h"     
 #include <iostream>
-#include <cmath> // For std::ceil
+#include <cmath> 
 #include <algorithm>
 #include <filesystem>
 #include <unordered_map>
 
 MediaManager::MediaManager(TagLibWrapper* tagUtil)
     : tagUtil(tagUtil) 
-{
-    // Constructor initializer list
-}
+{}
 
 void MediaManager::loadFromDirectory(const std::string& path) {
     std::cout << "MediaManager: Loading from directory: " << path << std::endl;
@@ -83,7 +81,5 @@ MediaFile* MediaManager::findFileByPath(const std::string& filePath) const {
         return it->get(); // Return raw pointer
     }
 
-    // Optional: Log if file not found during playlist load
-    // std::cerr << "MediaManager::findFileByPath: File not found in library: " << filePath << std::endl;
     return nullptr; // Not found
 }

@@ -1,5 +1,5 @@
 #include "NcursesUI.h"
-#include <iostream> // For error logging
+#include <iostream> 
 
 NcursesUI::NcursesUI() : isInitialized(false), screenHeight(0), screenWidth(0) {}
 

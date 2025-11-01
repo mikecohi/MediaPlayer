@@ -19,7 +19,6 @@ public:
 
     bool init();
 
-    // --- Getters ---
     MediaManager* getMediaManager() const;
     PlaylistManager* getPlaylistManager() const;
     MediaPlayer* getMediaPlayer() const;
@@ -28,11 +27,8 @@ public:
     MediaManager* getUSBMediaManager() const;
     MediaController* getusbmediaController() const;
     bool loadUSBLibrary();
-//    bool reloadUSBLibrary();
     bool ejectUSB();
     public:
-    // existing...
-    //void setUSBMediaManager(MediaManager* usbMgr);
 
 
 private:

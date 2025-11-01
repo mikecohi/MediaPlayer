@@ -15,16 +15,8 @@ public:
     MainAreaAction handleMouse(int localY, int localX) override;
     MediaFile* getSelectedTrack() const;
 
-    /**
-     * @brief Gets the currently selected playlist object.
-     * @return Non-owning pointer to the selected Playlist, or nullptr.
-     */
     Playlist* getSelectedPlaylist() const;
 
-    /**
-     * @brief Gets the index of the currently selected playlist.
-     * @return The index, or -1 if invalid.
-     */
     int getSelectedPlaylistIndex() const; 
     int getSelectedTrackIndex() const;
 private:

@@ -5,7 +5,7 @@
 #include <string>
 #include <tuple>
 #include <vector>
-#include <cmath> // Needed for ceil
+#include <cmath> 
 
 MainPlaylistView::MainPlaylistView(NcursesUI* ui, WINDOW* win, PlaylistManager* manager)
     : ui(ui), win(win), playlistManager(manager),
@@ -28,7 +28,7 @@ MainPlaylistView::MainPlaylistView(NcursesUI* ui, WINDOW* win, PlaylistManager* 
     if (availableLines < 1) availableLines = 1;
     playlistsPerPage = std::min(25, availableLines); // Apply max 25 limit
 
-    totalPlaylistPages = 0; // Will be calculated in draw()
+    totalPlaylistPages = 0;
 }
 
 void MainPlaylistView::draw(FocusArea focus) {
@@ -49,15 +49,12 @@ void MainPlaylistView::draw(FocusArea focus) {
     std::vector<Playlist*> playlists = playlistManager->getAllPlaylists();
     int totalPlaylists = playlists.size();
 
-    // --- RECALCULATE PAGINATION for Playlists ---
     int availableLines = height - 4 - 2 - 1; // Recalculate based on current height
     if (availableLines < 1) availableLines = 1;
     playlistsPerPage = std::min(25, availableLines);
     totalPlaylistPages = (totalPlaylists > 0) ? static_cast<int>(std::ceil(static_cast<double>(totalPlaylists) / playlistsPerPage)) : 1;
     if (playlistPage > totalPlaylistPages) playlistPage = totalPlaylistPages;
 
-    // --- Draw playlist list panel ---
-    // Header with pagination buttons
     std::string pageInfo = "Page " + std::to_string(playlistPage) + "/" + std::to_string(totalPlaylistPages);
     std::string prevLabel = "[< Prev]"; prevBtnW = prevLabel.length();
     std::string nextLabel = "[Next >]"; nextBtnW = nextLabel.length();
@@ -67,7 +64,6 @@ void MainPlaylistView::draw(FocusArea focus) {
     mvwprintw(win, 2, (listWidth - pageInfo.length()) / 2, "%s", pageInfo.c_str()); // Center page info
     mvwprintw(win, nextBtnY, nextBtnX, "%s", nextLabel.c_str());
 
-    // Playlist content for the current page
     int start = (playlistPage - 1) * playlistsPerPage;
     for (int i = 0; i < playlistsPerPage; ++i) { // Loop up to playlistsPerPage
         int lineY = 4 + i;
@@ -198,12 +194,7 @@ MainAreaAction MainPlaylistView::handleInput(InputEvent event, FocusArea focus) 
             if (newPage != playlistPage) playlistPage = newPage;
         }
 
-        // --- Button Activation ---
-        // if (event.key == 10) { // Enter - Activate [Delete]
-        //      if (playlistCount > 0 && playlistSelected >= 0) return MainAreaAction::DELETE_PLAYLIST;
-        // }
         if (event.key == 'c') return MainAreaAction::CREATE_PLAYLIST;
-        //if (event.key == 'd' && playlistCount > 0 && playlistSelected >= 0) return MainAreaAction::DELETE_PLAYLIST;
 
     } else if (focus == FocusArea::MAIN_DETAIL) {
         if (trackCount > 0) {

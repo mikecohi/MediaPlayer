@@ -2,12 +2,11 @@
 #include "model/MediaFile.h"
 #include <string>
 #include <vector>
-#include <algorithm> // for std::max/min
-#include <cstring>   // For strlen
+#include <algorithm> 
+#include <cstring>   
 
 BottomBarView::BottomBarView(NcursesUI* ui, MediaPlayer* player, WINDOW* win)
     : ui(ui), player(player), win(win),
-      // Initialize button coordinates (will be set in draw)
       prevX_start(0), prevX_end(0),
       playPauseX_start(0), playPauseX_end(0),
       nextX_start(0), nextX_end(0),
@@ -17,7 +16,7 @@ BottomBarView::BottomBarView(NcursesUI* ui, MediaPlayer* player, WINDOW* win)
 
 void BottomBarView::draw(bool hasFocus) {
     werase(win);
-    box(win, 0, 0); // Keep commented out if UIManager draws
+    box(win, 0, 0);
 
     std::string title = "Stopped";
     int currentTime = 0;
@@ -101,11 +100,9 @@ void BottomBarView::draw(bool hasFocus) {
     wnoutrefresh(win); // Update virtual screen
 }
 
-// --- UPDATED MOUSE HANDLING (Returns BottomBarAction) ---
 BottomBarAction BottomBarView::handleMouse(int localY, int localX) {
     if (localY != 3) return BottomBarAction::NONE; // Only handle clicks on the control line (Y=3)
 
-    // Check against stored coordinates (calculated in draw)
     if (localX >= prevX_start && localX < prevX_end) return BottomBarAction::PREV_TRACK;
     if (localX >= playPauseX_start && localX < playPauseX_end) return BottomBarAction::TOGGLE_PLAY_PAUSE;
     if (localX >= nextX_start && localX < nextX_end) return BottomBarAction::NEXT_TRACK;
@@ -114,7 +111,6 @@ BottomBarAction BottomBarView::handleMouse(int localY, int localX) {
 
     return BottomBarAction::NONE; // Click didn't hit a known button area
 }
-// --- END MOUSE HANDLING ---
 
 // --- NEW KEYBOARD HANDLING ---
 BottomBarAction BottomBarView::handleKeyboard(int key) {
@@ -137,4 +133,3 @@ BottomBarAction BottomBarView::handleKeyboard(int key) {
              return BottomBarAction::NONE;
      }
 }
-// --- END KEYBOARD HANDLING ---

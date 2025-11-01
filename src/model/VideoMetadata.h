@@ -3,7 +3,7 @@
 
 class VideoMetadata : public Metadata {
 public:
-    std::string resolution; // e.g., "1920x1080"
-    int bitrateKbps;    // e.g., 3000
-    std::string codec;      // e.g., "h264"
+    std::string resolution; 
+    int bitrateKbps;   
+    std::string codec;
 };

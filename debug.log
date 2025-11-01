@@ -6,24 +6,17 @@ DEBUG SDLWrapper: Initialization successful.
 DEBUG SDLWrapper: Setting track finished callback.
 MediaController: Initialized.
 MediaController: Initialized.
-App: Loading initial media from /home/dung20210222/Documents/F/MediaPlayer/test_media ...
-MediaManager: Loading from directory: /home/dung20210222/Documents/F/MediaPlayer/test_media
-MediaManager: Found 19 media files.
-MediaManager: Load complete. Library size: 19
-DEBUG App::init: MediaManager reports 19 files AFTER loading from /home/dung20210222/Documents/F/MediaPlayer/test_media.
-App: Media loading complete.
+App: Loading user media from "/home/dung20210222/Music/MediaPlayer/test_media" ...
+MediaManager: Loading from directory: /home/dung20210222/Music/MediaPlayer/test_media
+MediaManager: Found 28 media files.
+MediaManager: Load complete. Library size: 28
 App: Checking for USB media...
-[USBUtils] ✅ Found USB at: "/media/dung20210222/38D0214FD02114A2"
-[AppController] ✅ Loading media from: /media/dung20210222/38D0214FD02114A2
-MediaManager: Loading from directory: /media/dung20210222/38D0214FD02114A2
-MediaManager: Found 29 media files.
-MediaManager: Load complete. Library size: 29
-MediaController: Initialized.
-[AppController] 🔁 Reloading playlists after USB mount...
-PlaylistManager: Playlists loaded successfully from /home/dung20210222/Documents/F/MediaPlayer/playlist/playlists.json
-App: USB media loaded successfully. Found 29 files.
-App: Loading playlists from /home/dung20210222/Documents/F/MediaPlayer/playlist/playlists.json...
-PlaylistManager: Playlists loaded successfully from /home/dung20210222/Documents/F/MediaPlayer/playlist/playlists.json
+[USBUtils] 🧭 Root device: /dev/nvme0n1p8 (Disk: nvm)
+[USBUtils] ❌ No USB device found.
+[AppController] ❌ No USB detected.
+App: No USB media detected or failed to load.
+App: Loading playlists from "/home/dung20210222/Music/MediaPlayer/playlist/playlists.json"...
+PlaylistManager: Playlists loaded successfully from /home/dung20210222/Music/MediaPlayer/playlist/playlists.json
 --- Application Shutting Down ---
 App: Cleanup complete.
 DEBUG SDLWrapper: Closing...

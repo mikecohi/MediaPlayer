@@ -1,17 +1,15 @@
 #include "model/MediaFile.h"
-#include <filesystem> // Requires C++17
+#include <filesystem>
 
 MediaFile::MediaFile(const std::string& path, std::unique_ptr<Metadata> metadata)
-    : filePath(path), metadata(std::move(metadata)) // Move ownership
+    : filePath(path), metadata(std::move(metadata))
 {
-    // Extract file name from path
     try {
         this->fileName = std::filesystem::path(path).filename().string();
     } catch (std::exception& e) {
         this->fileName = path; // Fallback
     }
 
-    // Determine the media type using RTTI (Run-Time Type Information)
     if (dynamic_cast<AudioMetadata*>(this->metadata.get())) {
         this->mediaType = MediaType::AUDIO;
     } else if (dynamic_cast<VideoMetadata*>(this->metadata.get())) {

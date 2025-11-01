@@ -15,8 +15,6 @@ MediaPlayer::MediaPlayer(SDLWrapper* sdlWrapper)
         return;
     }
 
-    // Connect the SDLWrapper's static callback to our member function
-    // We use a lambda to capture 'this'
     sdlWrapper->setTrackFinishedCallback([this]() {
         this->onTrackFinished();
     });
@@ -25,7 +23,6 @@ MediaPlayer::MediaPlayer(SDLWrapper* sdlWrapper)
 void MediaPlayer::play(MediaFile* file, Playlist* context) {
     if (file == nullptr) return;
 
-    // (Giai đoạn 3 sẽ kiểm tra xem có phải file đang pause không)
     isStoppingManually_ = true;
 
     if (sdlWrapper->playAudio(file->getFilePath())) {
@@ -100,8 +97,6 @@ MediaFile* MediaPlayer::getCurrentTrack() const {
 
 void MediaPlayer::onTrackFinished() {
     std::cout << "MediaPlayer: Track finished." << std::endl;
-    // currentState = PlayerState::STOPPED;
-    // currentTrack = nullptr;
     if (isStoppingManually_) {
         std::cout << "MediaPlayer: Manual stop detected, ignoring auto-next." << std::endl;
         return;
@@ -112,7 +107,7 @@ void MediaPlayer::onTrackFinished() {
 
     //Auto-next 
     if (onTrackFinishedCallback_) {
-        onTrackFinishedCallback_(); // <-- (call MediaController::nextTrack)
+        onTrackFinishedCallback_();
     }
     if (currentTrack == finishedTrack) {
         std::cout << "MediaPlayer: Auto-next did not start new track. Setting track to null." << std::endl;
