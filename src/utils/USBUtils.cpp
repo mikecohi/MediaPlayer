@@ -8,9 +8,6 @@
 
 namespace fs = std::filesystem;
 
-/**
- * Kiểm tra thiết bị có thể tháo rời không (USB thật)
- */
 bool USBUtils::isDeviceRemovable(const std::string& deviceName) {
     std::string sysPath = "/sys/block/" + deviceName + "/removable";
     std::ifstream file(sysPath);
@@ -22,9 +19,6 @@ bool USBUtils::isDeviceRemovable(const std::string& deviceName) {
     return (flag == 1);
 }
 
-/**
- * Lấy thiết bị chứa root filesystem (ví dụ /dev/sda2)
- */
 std::string USBUtils::getRootDevice() {
     FILE* pipe = popen("findmnt -no SOURCE /", "r");
     if (!pipe) return "";
@@ -33,29 +27,25 @@ std::string USBUtils::getRootDevice() {
     while (fgets(buffer, sizeof(buffer), pipe)) result += buffer;
     pclose(pipe);
     result.erase(std::remove_if(result.begin(), result.end(), ::isspace), result.end());
-    return result; // ví dụ: "/dev/sda2"
+    return result;
 }
 
-/**
- * Phát hiện và trả về đường dẫn mount của USB (Linux thật)
- */
 std::string USBUtils::detectUSBMount() {
     const char* username = getenv("USER");
     if (!username) {
-        std::cerr << "[USBUtils] ⚠️ Cannot detect USER environment.\n";
+        std::cerr << "[USBUtils] Cannot detect USER environment.\n";
         return "";
     }
 
-    // Xác định ổ hệ thống để loại trừ
     std::string rootDev = getRootDevice();
     std::string rootDisk = "";
     if (!rootDev.empty()) {
-        std::string rootBase = fs::path(rootDev).filename().string(); // ví dụ "sda2"
-        rootDisk = rootBase.substr(0, 3); // "sda"
-        std::cout << "[USBUtils] 🧭 Root device: " << rootDev 
+        std::string rootBase = fs::path(rootDev).filename().string(); 
+        rootDisk = rootBase.substr(0, 3); 
+        std::cout << "[USBUtils]  Root device: " << rootDev 
                   << " (Disk: " << rootDisk << ")\n";
     } else {
-        std::cerr << "[USBUtils] ⚠️ Cannot determine root device.\n";
+        std::cerr << "[USBUtils]Cannot determine root device.\n";
     }
 
     std::vector<std::string> basePaths = {
@@ -73,53 +63,52 @@ std::string USBUtils::detectUSBMount() {
             std::string devLink = "/dev/disk/by-label/" + label;
 
             if (!fs::exists(devLink)) {
-                std::cout << "[USBUtils] ⚙️ Skipping non-device entry: " << label << "\n";
+                std::cout << "[USBUtils]  Skipping non-device entry: " << label << "\n";
                 continue;
             }
 
             std::string devTarget;
             try {
-                devTarget = fs::read_symlink(devLink).filename().string(); // sda1, sdb1, ...
+                devTarget = fs::read_symlink(devLink).filename().string(); 
             } catch (...) {
-                std::cerr << "[USBUtils] ⚠️ Failed to resolve symlink for " << devLink << "\n";
+                std::cerr << "[USBUtils]  Failed to resolve symlink for " << devLink << "\n";
                 continue;
             }
 
             std::string deviceName = devTarget.substr(0, 3); // sda, sdb, ...
 
-            // Loại trừ ổ hệ thống
+            
             if (!rootDisk.empty() && deviceName == rootDisk) {
-                std::cout << "[USBUtils] ⚠️ Skipping system disk: " << deviceName << "\n";
+                std::cout << "[USBUtils]  Skipping system disk: " << deviceName << "\n";
                 continue;
             }
 
-            // Chỉ chấp nhận nếu removable
             if (isDeviceRemovable(deviceName)) {
-                std::cout << "[USBUtils] ✅ Found removable USB: " << entry.path() << "\n";
+                std::cout << "[USBUtils]  Found removable USB: " << entry.path() << "\n";
                 return entry.path().string();
             } else {
-                std::cout << "[USBUtils] ⚙️ Ignored non-removable device: " << deviceName << "\n";
+                std::cout << "[USBUtils]  Ignored non-removable device: " << deviceName << "\n";
             }
         }
     }
 
-    std::cerr << "[USBUtils] ❌ No USB device found.\n";
+    std::cerr << "[USBUtils]  No USB device found.\n";
     return "";
 }
 
 bool USBUtils::unmountUSB(const std::string& mountPath) {
     if (mountPath.empty() || !fs::exists(mountPath)) {
-        std::cerr << "[USBUtils] ⚠️ Invalid mount path for unmount: " << mountPath << "\n";
+        std::cerr << "[USBUtils]  Invalid mount path for unmount: " << mountPath << "\n";
         return false;
     }
 
     std::string cmd = "sudo -n umount " + mountPath + " >/dev/null 2>&1";
     int ret = std::system(cmd.c_str());
     if (ret == 0) {
-        std::cout << "[USBUtils] ✅ USB safely unmounted: " << mountPath << "\n";
+        std::cout << "[USBUtils]  USB safely unmounted: " << mountPath << "\n";
         return true;
     } else {
-        std::cerr << "[USBUtils] ❌ Failed to unmount: " << mountPath << "\n";
+        std::cerr << "[USBUtils]  Failed to unmount: " << mountPath << "\n";
         return false;
     }
 }
